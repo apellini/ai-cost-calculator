@@ -479,7 +479,12 @@ src/
 
 ## 13. Non-Functional Requirements
 
-- **Performance**: Analysis should complete within 30s for a 20-feature project
+- **Performance & Batch Mode**:
+  - Target: analysis completes within 30s for a typical project
+  - If analysis exceeds 30s: UI suggests switching to batch mode (user can accept or wait)
+  - If analysis exceeds 120s: automatically switches to batch mode
+  - **Batch mode**: same analysis flow runs in background. User is notified (in-app notification + optional email) when the analysis completes or needs attention (e.g., ambiguous feature classification requiring user input)
+  - Batch analyses are accessible from the project dashboard with status indicators (queued, running, completed, needs attention)
 - **Data freshness**: Staleness warnings after 7 days without refresh
 - **Error handling**: Graceful fallback to seed data when live APIs fail
 - **Configuration**: All LLM backend settings configurable without code changes
