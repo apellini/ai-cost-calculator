@@ -19,7 +19,7 @@ Direct install on a fresh **Ubuntu 22.04+** IaaS VM. No Docker required.
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y \
   python3.12 python3.12-venv python3.12-dev \
-  nodejs npm \
+  curl ca-certificates gnupg \
   postgresql-16 \
   redis-server \
   nginx certbot python3-certbot-nginx \
@@ -29,7 +29,25 @@ sudo apt install -y \
 
 ---
 
-## 2. PostgreSQL Setup
+## 2. Node.js & npm (via NodeSource — installs Node 22 LTS)
+
+> The `nodejs` package in Ubuntu's default repos is outdated (Node 12/18). Install the current LTS via NodeSource instead.
+
+```bash
+# Add NodeSource repository for Node.js 22 LTS
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+
+# Install Node.js (includes npm)
+sudo apt install -y nodejs
+
+# Verify
+node --version   # should print v22.x.x
+npm --version    # should print 10.x.x
+```
+
+---
+
+## 3. PostgreSQL Setup
 
 ```bash
 # Start PostgreSQL
@@ -47,7 +65,7 @@ SQL
 
 ---
 
-## 3. Redis Setup
+## 4. Redis Setup
 
 ```bash
 sudo systemctl enable --now redis-server
@@ -57,7 +75,7 @@ redis-cli ping  # should print PONG
 
 ---
 
-## 4. Application Directory
+## 5. Application Directory
 
 ```bash
 sudo mkdir -p /opt/ai-cost-calculator
@@ -70,7 +88,7 @@ git clone <your-repo-url> /opt/ai-cost-calculator
 
 ---
 
-## 5. Backend Setup
+## 6. Backend Setup
 
 ```bash
 cd /opt/ai-cost-calculator/backend
@@ -97,22 +115,32 @@ python -m app.seed.seed_data --mode=fictional
 
 ---
 
-## 6. Frontend Build
+## 7. Frontend Build
 
 ```bash
 cd /opt/ai-cost-calculator/frontend
 
-# Install Node dependencies
+# Install all Node dependencies (reads package.json)
 npm install
 
-# Build for production
+# Set the API URL so the frontend knows where the backend is.
+# If running behind Nginx on the same host, use a relative path:
+echo "VITE_API_URL=" > .env
+# If the backend is on a different host or port:
+# echo "VITE_API_URL=http://your.domain.com" > .env
+
+# Build for production (output goes to frontend/dist/)
 npm run build
-# Output is in frontend/dist/
 ```
+
+> **Troubleshooting npm install failures**
+> - `EACCES` permission errors → never run `npm install` as root; run as your normal user
+> - `python3` missing during native module builds → `sudo apt install -y python3`
+> - `gyp` / node-gyp errors → `sudo apt install -y build-essential`
 
 ---
 
-## 7. systemd Service (Backend)
+## 8. systemd Service (Backend)
 
 ```bash
 sudo nano /etc/systemd/system/aicost-backend.service
@@ -157,7 +185,7 @@ sudo journalctl -u aicost-backend -f
 
 ---
 
-## 8. systemd Service (ARQ Worker — for background analyses)
+## 9. systemd Service (ARQ Worker — for background analyses)
 
 ```bash
 sudo nano /etc/systemd/system/aicost-worker.service
@@ -191,7 +219,7 @@ sudo systemctl enable --now aicost-worker
 
 ---
 
-## 9. Nginx Configuration
+## 10. Nginx Configuration
 
 ```bash
 sudo nano /etc/nginx/sites-available/aicost
@@ -247,7 +275,7 @@ sudo systemctl reload nginx
 
 ---
 
-## 10. SSL (Optional — for HTTPS)
+## 11. SSL (Optional — for HTTPS)
 
 ```bash
 # Requires a real domain pointed at this VM
@@ -258,7 +286,7 @@ sudo systemctl enable --now certbot.timer
 
 ---
 
-## 11. Verify
+## 12. Verify
 
 ```bash
 # Backend health check
