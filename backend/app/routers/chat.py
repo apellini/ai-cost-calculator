@@ -4,28 +4,30 @@ WebSocket chat endpoint.
 Connect: ws://host/ws/chat/{project_id}
 
 Message flow:
-  1. On connect → server sends opening greeting (streamed)
+  1. On connect → server sends opening greeting
   2. Client sends {"type": "message", "text": "..."}
   3. Server streams tokens then sends {"type": "done"}
-  4. After 4th user turn → server extracts features, sends {"type": "features", ...}
-  5. Client sends {"type": "confirm_features"} → server saves features + triggers analysis
-  6. Server sends {"type": "analysis_ready", "project_id": N}
+  4. After feature extraction → {"type": "features", "features": [...]}
+  5. Client sends {"type": "confirm_features"} → saves features, sends {"type": "analysis_ready"}
+
+Note: DB sessions are created inline rather than via Depends() because FastAPI
+may finalize generator dependencies before the WebSocket handler loop completes.
 """
 import json
+import logging
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from app.database import get_db
-from app.llm.factory import get_llm_adapter
+from app.database import AsyncSessionLocal
 from app.llm.base import ChatMessage
-from app.models.project import Feature, Project, SubTask
+from app.llm.factory import get_llm_adapter
+from app.models.project import Feature, Project
 from app.services.chat_service import ConversationState, process_message
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["chat"])
 
-# In-memory session store (keyed by project_id).
-# Replace with Redis in production for multi-process deployments.
 _sessions: dict[int, ConversationState] = {}
 
 GREETING = (
@@ -36,16 +38,11 @@ GREETING = (
 
 
 @router.websocket("/ws/chat/{project_id}")
-async def chat_ws(
-    project_id: int,
-    websocket: WebSocket,
-    db: AsyncSession = Depends(get_db),
-):
+async def chat_ws(project_id: int, websocket: WebSocket):
     await websocket.accept()
 
     llm = get_llm_adapter()
 
-    # Get or create session state
     if project_id not in _sessions:
         _sessions[project_id] = ConversationState(project_id=project_id)
 
@@ -54,12 +51,12 @@ async def chat_ws(
     async def send(msg: dict) -> None:
         await websocket.send_text(json.dumps(msg))
 
-    # Send greeting on first connect
-    if state.turn == 0 and not state.history:
-        state.history.append(ChatMessage(role="assistant", content=GREETING))
-        await send({"type": "done", "text": GREETING})
-
     try:
+        # Send greeting on first connect
+        if state.turn == 0 and not state.history:
+            state.history.append(ChatMessage(role="assistant", content=GREETING))
+            await send({"type": "done", "text": GREETING})
+
         while True:
             raw = await websocket.receive_text()
             data = json.loads(raw)
@@ -69,7 +66,8 @@ async def chat_ws(
                 await process_message(state, data.get("text", ""), llm, send)
 
             elif msg_type == "confirm_features":
-                await _save_features(project_id, state, db)
+                async with AsyncSessionLocal() as db:
+                    await _save_features(project_id, state, db)
                 _sessions.pop(project_id, None)
                 await send({"type": "analysis_ready", "project_id": project_id})
 
@@ -81,15 +79,16 @@ async def chat_ws(
                 })
 
     except WebSocketDisconnect:
-        pass
+        logger.debug("WebSocket disconnected: project=%d", project_id)
+    except Exception as exc:
+        logger.exception("WebSocket error: project=%d error=%s", project_id, exc)
+        try:
+            await send({"type": "error", "text": "Connection error. Please refresh and try again."})
+        except Exception:
+            pass
 
 
-async def _save_features(
-    project_id: int,
-    state: ConversationState,
-    db: AsyncSession,
-) -> None:
-    """Persist extracted features (without sub-tasks — pipeline handles decomposition)."""
+async def _save_features(project_id: int, state: ConversationState, db) -> None:
     project = await db.get(Project, project_id)
     if not project:
         return
