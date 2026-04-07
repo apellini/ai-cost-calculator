@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -25,7 +25,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account disabled")
 
-    user.last_active_at = datetime.now(timezone.utc)
+    user.last_active_at = datetime.now(UTC).replace(tzinfo=None)
     await db.commit()
 
     token = create_access_token(user.id, user.email, user.role)
