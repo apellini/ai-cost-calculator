@@ -62,6 +62,31 @@ sudo apt install -y \
   nginx certbot python3-certbot-nginx
 ```
 
+### WeasyPrint system libraries
+
+WeasyPrint (used for PDF export) requires Pango, Cairo, and GDK-Pixbuf shared libraries that are **not** pulled in automatically by pip.
+
+```bash
+sudo apt install -y \
+  libpango-1.0-0 \
+  libpangocairo-1.0-0 \
+  libpangoft2-1.0-0 \
+  libcairo2 \
+  libgdk-pixbuf2.0-0 \
+  libffi-dev \
+  shared-mime-info \
+  fonts-liberation \
+  fonts-dejavu-core
+
+# Verify Pango is visible
+python3.12 -c "import ctypes; ctypes.CDLL('libpango-1.0.so.0'); print('pango OK')"
+```
+
+> If the verify step fails, run `ldconfig` to refresh the dynamic linker cache:
+> ```bash
+> sudo ldconfig
+> ```
+
 ---
 
 ## 2. Node.js & npm (via NodeSource — installs Node 22 LTS)
