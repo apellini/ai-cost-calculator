@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +23,10 @@ from app.models import (
 )
 
 DATA_DIR = Path(__file__).parent / "data"
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt(12)).decode()
 
 
 async def create_tables() -> None:
@@ -101,7 +104,7 @@ async def seed_admin_user(session: AsyncSession) -> User:
     user = User(
         email="admin@example.com",
         name="Admin User",
-        hashed_password=pwd_context.hash("admin1234"),
+        hashed_password=hash_password("admin1234"),
         role="admin",
     )
     session.add(user)
