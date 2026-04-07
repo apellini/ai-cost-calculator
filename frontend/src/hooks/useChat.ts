@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+// uuid() requires a secure context (HTTPS/localhost).
+// Fall back to a simple random ID for plain-HTTP deployments.
+function uuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return uuid()
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
 const WS_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000')
   .replace(/^http/, 'ws')
 
@@ -67,7 +76,7 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
                 : m
             )
           }
-          const id = crypto.randomUUID()
+          const id = uuid()
           streamingIdRef.current = id
           return [...prev, { id, role: 'assistant', content: event.text, streaming: true }]
         })
@@ -87,7 +96,7 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
         } else {
           setMessages(prev => [
             ...prev,
-            { id: crypto.randomUUID(), role: 'assistant', content: event.text },
+            { id: uuid(), role: 'assistant', content: event.text },
           ])
         }
       }
@@ -99,7 +108,7 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
       if (event.type === 'error') {
         setMessages(prev => [
           ...prev,
-          { id: crypto.randomUUID(), role: 'assistant', content: `⚠ ${event.text}` },
+          { id: uuid(), role: 'assistant', content: `⚠ ${event.text}` },
         ])
       }
 
@@ -114,7 +123,7 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
   const sendMessage = useCallback((text: string) => {
     setMessages(prev => [
       ...prev,
-      { id: crypto.randomUUID(), role: 'user', content: text },
+      { id: uuid(), role: 'user', content: text },
     ])
     send({ type: 'message', text })
   }, [send])
