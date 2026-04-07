@@ -141,6 +141,54 @@ export interface TaskCategory {
   max_output_tokens: number
 }
 
+export interface FeatureDelta {
+  feature_id: number
+  feature_name: string
+  left_cost: number
+  left_model: string
+  right_cost: number
+  right_model: string
+  delta: number
+  left_input_tokens: number
+  left_output_tokens: number
+}
+
+export interface ComparisonOut {
+  left_label: string
+  right_label: string
+  left_total: number
+  right_total: number
+  delta: number
+  delta_pct: number
+  feature_deltas: FeatureDelta[]
+}
+
+export interface FeatureTimelineOut {
+  feature_id: number
+  feature_name: string
+  with_ai_days: number
+  without_ai_days: number
+  start_date: string
+  end_date: string
+  depends_on: number[]
+  critical_path: boolean
+}
+
+export interface TimelineOut {
+  features: FeatureTimelineOut[]
+  total_with_ai_days: number
+  total_without_ai_days: number
+  start_date: string
+  end_date: string
+}
+
+export interface ScenarioOut {
+  id: number
+  name: string
+  notes: string | null
+  status: string
+}
+
 // ── API calls ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -186,5 +234,22 @@ export const api = {
   // Task categories
   taskCategories: {
     list: () => request<TaskCategory[]>('/api/task-categories'),
+  },
+
+  // Timeline
+  timeline: {
+    get: (projectId: number, startDate?: string) =>
+      request<TimelineOut>(
+        `/api/projects/${projectId}/timeline${startDate ? `?start_date=${startDate}` : ''}`
+      ),
+  },
+
+  // Scenarios & comparison
+  scenarios: {
+    list: (projectId: number) => request<ScenarioOut[]>(`/api/projects/${projectId}/scenarios`),
+    compare: (projectId: number, leftTier: string, rightTier: string) =>
+      request<ComparisonOut>(
+        `/api/projects/${projectId}/compare?left_tier=${leftTier}&right_tier=${rightTier}`
+      ),
   },
 }
