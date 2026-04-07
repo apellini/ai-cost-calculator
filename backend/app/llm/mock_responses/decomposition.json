@@ -1,0 +1,194 @@
+{
+  "qa_chatbot": {
+    "sub_tasks": [
+      {
+        "name": "Intent classification",
+        "category": "qa_chatbot",
+        "system_prompt_tokens": 600,
+        "input_context_tokens": 400,
+        "output_tokens": 150,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "Fast single-turn classification of user intent."
+      },
+      {
+        "name": "Answer generation with context retrieval",
+        "category": "qa_chatbot",
+        "system_prompt_tokens": 1000,
+        "input_context_tokens": 3000,
+        "output_tokens": 800,
+        "interaction_rounds": 2,
+        "worst_case_multiplier": 2.0,
+        "reasoning": "Multi-turn with retrieved knowledge base chunks."
+      }
+    ]
+  },
+  "reasoning_analysis": {
+    "sub_tasks": [
+      {
+        "name": "Data ingestion and structuring",
+        "category": "data_extraction",
+        "system_prompt_tokens": 500,
+        "input_context_tokens": 5000,
+        "output_tokens": 1000,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "Parsing and structuring raw input for downstream reasoning."
+      },
+      {
+        "name": "Multi-step reasoning chain",
+        "category": "reasoning_analysis",
+        "system_prompt_tokens": 1500,
+        "input_context_tokens": 6000,
+        "output_tokens": 2500,
+        "interaction_rounds": 3,
+        "worst_case_multiplier": 2.5,
+        "reasoning": "Complex reasoning requiring multiple refinement rounds."
+      }
+    ]
+  },
+  "summarization": {
+    "sub_tasks": [
+      {
+        "name": "Document chunking and per-chunk summary",
+        "category": "summarization",
+        "system_prompt_tokens": 400,
+        "input_context_tokens": 15000,
+        "output_tokens": 1500,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "Long docs processed in chunks; async-friendly for batch API."
+      },
+      {
+        "name": "Final synthesis summary",
+        "category": "summarization",
+        "system_prompt_tokens": 300,
+        "input_context_tokens": 3000,
+        "output_tokens": 800,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.3,
+        "reasoning": "Merging chunk summaries into a coherent output."
+      }
+    ]
+  },
+  "code_review": {
+    "sub_tasks": [
+      {
+        "name": "Static analysis and style check",
+        "category": "code_review",
+        "system_prompt_tokens": 1800,
+        "input_context_tokens": 8000,
+        "output_tokens": 2500,
+        "interaction_rounds": 2,
+        "worst_case_multiplier": 2.0,
+        "reasoning": "PR diff analysis with shared context — prompt caching reduces input cost ~60%."
+      },
+      {
+        "name": "Security vulnerability scan",
+        "category": "code_review",
+        "system_prompt_tokens": 1500,
+        "input_context_tokens": 8000,
+        "output_tokens": 1500,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "Security-focused pass requiring high-capability model."
+      }
+    ]
+  },
+  "content_generation": {
+    "sub_tasks": [
+      {
+        "name": "Outline and structure generation",
+        "category": "content_generation",
+        "system_prompt_tokens": 600,
+        "input_context_tokens": 2000,
+        "output_tokens": 1000,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "First pass to establish structure before full generation."
+      },
+      {
+        "name": "Full content generation",
+        "category": "content_generation",
+        "system_prompt_tokens": 800,
+        "input_context_tokens": 3000,
+        "output_tokens": 5000,
+        "interaction_rounds": 2,
+        "worst_case_multiplier": 1.8,
+        "reasoning": "High output volume; multiple rounds for quality refinement."
+      }
+    ]
+  },
+  "code_generation": {
+    "sub_tasks": [
+      {
+        "name": "Specification analysis",
+        "category": "reasoning_analysis",
+        "system_prompt_tokens": 800,
+        "input_context_tokens": 4000,
+        "output_tokens": 1500,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "Understanding requirements before generating code."
+      },
+      {
+        "name": "Code generation and iteration",
+        "category": "code_generation",
+        "system_prompt_tokens": 1200,
+        "input_context_tokens": 6000,
+        "output_tokens": 4000,
+        "interaction_rounds": 3,
+        "worst_case_multiplier": 2.5,
+        "reasoning": "Iterative code generation with test-fix cycles."
+      }
+    ]
+  },
+  "data_extraction": {
+    "sub_tasks": [
+      {
+        "name": "Schema definition and extraction prompt",
+        "category": "data_extraction",
+        "system_prompt_tokens": 500,
+        "input_context_tokens": 8000,
+        "output_tokens": 1000,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.3,
+        "reasoning": "Structured extraction — high volume, low per-call cost."
+      },
+      {
+        "name": "Validation and normalization",
+        "category": "data_extraction",
+        "system_prompt_tokens": 400,
+        "input_context_tokens": 2000,
+        "output_tokens": 500,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.2,
+        "reasoning": "Post-extraction cleanup pass."
+      }
+    ]
+  },
+  "translation": {
+    "sub_tasks": [
+      {
+        "name": "Batch string translation",
+        "category": "translation",
+        "system_prompt_tokens": 300,
+        "input_context_tokens": 3000,
+        "output_tokens": 3500,
+        "interaction_rounds": 1,
+        "worst_case_multiplier": 1.3,
+        "reasoning": "Batch translation across target languages."
+      },
+      {
+        "name": "Context-aware content translation",
+        "category": "translation",
+        "system_prompt_tokens": 500,
+        "input_context_tokens": 5000,
+        "output_tokens": 6000,
+        "interaction_rounds": 2,
+        "worst_case_multiplier": 1.5,
+        "reasoning": "Dynamic content with domain terminology requires richer context."
+      }
+    ]
+  }
+}
