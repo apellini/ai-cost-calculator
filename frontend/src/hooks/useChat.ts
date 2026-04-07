@@ -37,6 +37,10 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
 
   const wsRef = useRef<WebSocket | null>(null)
   const streamingIdRef = useRef<string | null>(null)
+  // Keep a stable ref to the callback so the WebSocket effect doesn't re-run
+  // when the parent re-renders and passes a new function reference
+  const onAnalysisReadyRef = useRef(onAnalysisReady)
+  useEffect(() => { onAnalysisReadyRef.current = onAnalysisReady })
 
   const send = useCallback((data: object) => {
     wsRef.current?.send(JSON.stringify(data))
@@ -57,14 +61,12 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
         setMessages(prev => {
           const streamingId = streamingIdRef.current
           if (streamingId) {
-            // Append chunk to the streaming message
             return prev.map(m =>
               m.id === streamingId
                 ? { ...m, content: m.content + event.text }
                 : m
             )
           }
-          // Start new streaming message
           const id = crypto.randomUUID()
           streamingIdRef.current = id
           return [...prev, { id, role: 'assistant', content: event.text, streaming: true }]
@@ -74,7 +76,6 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
       if (event.type === 'done') {
         setStreaming(false)
         if (streamingIdRef.current) {
-          // Mark streaming message as complete
           setMessages(prev =>
             prev.map(m =>
               m.id === streamingIdRef.current
@@ -84,7 +85,6 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
           )
           streamingIdRef.current = null
         } else {
-          // Non-streamed message (e.g. greeting)
           setMessages(prev => [
             ...prev,
             { id: crypto.randomUUID(), role: 'assistant', content: event.text },
@@ -104,12 +104,12 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
       }
 
       if (event.type === 'analysis_ready') {
-        onAnalysisReady(event.project_id)
+        onAnalysisReadyRef.current(event.project_id)
       }
     }
 
     return () => ws.close()
-  }, [projectId, onAnalysisReady])
+  }, [projectId])  // projectId only — callback changes don't reconnect
 
   const sendMessage = useCallback((text: string) => {
     setMessages(prev => [

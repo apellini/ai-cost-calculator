@@ -42,11 +42,11 @@ async def create_snapshot(
                 "cached_input_per_1m": float(m.cached_input_per_1m) if m.cached_input_per_1m else None,
                 "task_fit": m.task_fit,
                 "benchmark": {
-                    "mmlu": m.benchmark.mmlu,
-                    "human_eval": m.benchmark.human_eval,
-                    "math": m.benchmark.math,
-                    "reasoning": m.benchmark.reasoning,
-                    "speed_tps": m.benchmark.speed_tps,
+                    "mmlu": float(m.benchmark.mmlu) if m.benchmark.mmlu is not None else None,
+                    "human_eval": float(m.benchmark.human_eval) if m.benchmark.human_eval is not None else None,
+                    "math": float(m.benchmark.math) if m.benchmark.math is not None else None,
+                    "reasoning": float(m.benchmark.reasoning) if m.benchmark.reasoning is not None else None,
+                    "speed_tps": float(m.benchmark.speed_tps) if m.benchmark.speed_tps is not None else None,
                 } if m.benchmark else None,
             }
             for m in models

@@ -32,11 +32,14 @@ export default function Chat() {
     },
   })
 
+  const runAnalysisRef = useRef(runAnalysis)
+  useEffect(() => { runAnalysisRef.current = runAnalysis })
+
   const handleAnalysisReady = useCallback((pid: number) => {
     qc.invalidateQueries({ queryKey: ['projects'] })
     qc.invalidateQueries({ queryKey: ['project', pid] })
-    runAnalysis.mutate()
-  }, [qc, runAnalysis])
+    runAnalysisRef.current.mutate()
+  }, [qc])
 
   const { messages, features, connected, streaming, sendMessage, confirmFeatures, rejectFeatures } =
     useChat({ projectId, onAnalysisReady: handleAnalysisReady })

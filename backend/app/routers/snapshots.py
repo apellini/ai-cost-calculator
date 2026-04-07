@@ -17,6 +17,8 @@ from app.models.project import Project
 from app.models.user import User
 from app.services.refresh_service import get_staleness, refresh_pricing
 
+# Staleness is non-sensitive read-only metadata — no auth required
+
 router = APIRouter(tags=["snapshots"])
 
 
@@ -86,10 +88,7 @@ async def list_snapshots(
 
 
 @router.get("/api/models/staleness", response_model=StalenessOut)
-async def pricing_staleness(
-    db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
-):
+async def pricing_staleness(db: AsyncSession = Depends(get_db)):
     return await get_staleness(db)
 
 
