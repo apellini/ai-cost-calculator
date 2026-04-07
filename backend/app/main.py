@@ -38,13 +38,15 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(users.router)
+# snapshots must come before models: /api/models/staleness and /api/models/refresh
+# are static paths that would otherwise be swallowed by models' /{model_id} dynamic route.
+app.include_router(snapshots.router)
 app.include_router(models.router)
 app.include_router(projects.router)
 app.include_router(task_categories.router)
 app.include_router(analysis.router)
 app.include_router(scenarios.router)
 app.include_router(timeline.router)
-app.include_router(snapshots.router)
 app.include_router(exports.router)
 app.include_router(notifications.router)
 app.include_router(chat.router)
