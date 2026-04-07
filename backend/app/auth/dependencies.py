@@ -1,24 +1,22 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.jwt import decode_token
 from app.database import get_db
 from app.models.user import User
 
-bearer = HTTPBearer(auto_error=False)
-
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    if not credentials:
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    token = auth[len("Bearer "):]
     try:
-        payload = decode_token(credentials.credentials)
+        payload = decode_token(token)
         user_id = int(payload["sub"])
     except (JWTError, KeyError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

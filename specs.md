@@ -29,3 +29,4 @@ You have to build a web application that analyze user requirements and produce a
 - Bundle and price are snapshopted to guarantee right history, user could refresh
 - Capabilities are snapshopted, user could refresh
 
+
