@@ -1,8 +1,9 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   LayoutDashboard, Plus, MessageSquare, BarChart3, GitCompare,
-  Clock, Database, Settings, ChevronRight, Zap
+  Clock, Database, Settings, ChevronRight, Zap, LogOut
 } from 'lucide-react'
 
 const NAV = [
@@ -13,10 +14,27 @@ const NAV = [
   { to: '/comparison', icon: GitCompare, label: 'Comparison' },
   { to: '/timeline', icon: Clock, label: 'Timeline' },
   { to: '/models', icon: Database, label: 'Model Catalog' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/settings', icon: Settings, label: 'Settings', adminOnly: true },
 ]
 
 export function Layout() {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
+  const initials = user?.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() ?? '??'
+
+  const visibleNav = NAV.filter(item => !item.adminOnly || user?.role === 'admin')
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -40,7 +58,7 @@ export function Layout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-2 px-2">
-          {NAV.map(({ to, icon: Icon, label }) => (
+          {visibleNav.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
@@ -62,16 +80,23 @@ export function Layout() {
           ))}
         </nav>
 
-        {/* Footer */}
+        {/* Footer — user info + logout */}
         <div className="p-3 border-t border-black/8">
-          <div className="flex items-center gap-2.5 px-2 py-1.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#4f7dff] to-[#a855f7] flex items-center justify-center text-[10px] font-bold text-white">
-              MP
+          <div className="flex items-center gap-2.5 px-2 py-1.5 group">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#4f7dff] to-[#a855f7] flex items-center justify-center text-[10px] font-bold text-white flex-none">
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-[#0f1117] truncate">Marco Pellini</div>
-              <div className="text-[10px] text-[#9099b0]">Admin</div>
+              <div className="text-xs text-[#0f1117] truncate">{user?.name ?? '—'}</div>
+              <div className="text-[10px] text-[#9099b0] capitalize">{user?.role}</div>
             </div>
+            <button
+              onClick={handleLogout}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-[#9099b0] hover:text-red-500 p-1 rounded"
+              title="Sign out"
+            >
+              <LogOut size={13} />
+            </button>
           </div>
         </div>
       </aside>

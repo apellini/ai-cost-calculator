@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import engine
-from app.routers import analysis, models, projects, task_categories
+from app.routers import analysis, auth, chat, models, projects, task_categories, users
 
 settings = get_settings()
 
@@ -33,10 +33,13 @@ app.add_middleware(
 )
 
 
+app.include_router(auth.router)
+app.include_router(users.router)
 app.include_router(models.router)
 app.include_router(projects.router)
 app.include_router(task_categories.router)
 app.include_router(analysis.router)
+app.include_router(chat.router)
 
 
 @app.get("/health")

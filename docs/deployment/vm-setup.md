@@ -13,18 +13,53 @@ Direct install on a fresh **Ubuntu 22.04+** IaaS VM. No Docker required.
 
 ---
 
-## 1. System Packages
+## 1. Base Packages & PPAs
+
+Install base tools first, then add the official PPAs for Python 3.12 and PostgreSQL 16 — neither is available in Ubuntu's default repos.
 
 ```bash
 sudo apt update && sudo apt upgrade -y
+
+# Base tools needed to add PPAs
+sudo apt install -y curl ca-certificates gnupg software-properties-common \
+  git build-essential libffi-dev libssl-dev
+```
+
+### Python 3.12 (via deadsnakes PPA)
+
+```bash
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev
+
+# Verify
+python3.12 --version   # Python 3.12.x
+```
+
+### PostgreSQL 16 (via official PostgreSQL apt repo)
+
+```bash
+# Add PostgreSQL signing key and repository
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+  | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] \
+  https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+  | sudo tee /etc/apt/sources.list.d/pgdg.list
+
+sudo apt update
+sudo apt install -y postgresql-16 libpq-dev
+
+# Verify
+psql --version   # psql (PostgreSQL) 16.x
+```
+
+### Remaining packages
+
+```bash
 sudo apt install -y \
-  python3.12 python3.12-venv python3.12-dev \
-  curl ca-certificates gnupg \
-  postgresql-16 \
   redis-server \
-  nginx certbot python3-certbot-nginx \
-  git build-essential libpq-dev \
-  libffi-dev libssl-dev
+  nginx certbot python3-certbot-nginx
 ```
 
 ---
@@ -112,6 +147,15 @@ alembic upgrade head
 # Seed with fictional data
 python -m app.seed.seed_data --mode=fictional
 ```
+
+> **Default login credentials** (created by the seed script):
+> | Field | Value |
+> |---|---|
+> | Email | `admin@example.com` |
+> | Password | `admin1234` |
+> | Role | `admin` |
+>
+> Change the password after first login.
 
 ---
 
