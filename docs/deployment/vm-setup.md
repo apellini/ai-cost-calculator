@@ -273,7 +273,7 @@ Group=www-data
 WorkingDirectory=/opt/ai-cost-calculator/backend
 Environment="PATH=/opt/ai-cost-calculator/backend/.venv/bin"
 EnvironmentFile=/opt/ai-cost-calculator/backend/.env
-ExecStart=/opt/ai-cost-calculator/backend/.venv/bin/arq app.workers.analysis_worker.WorkerSettings
+ExecStart=/opt/ai-cost-calculator/backend/.venv/bin/arq app.workers.worker.WorkerSettings
 Restart=on-failure
 RestartSec=10
 

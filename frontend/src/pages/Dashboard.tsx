@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Plus, BarChart3, Clock, TrendingDown, Calendar, ChevronRight, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, BarChart3, Clock, TrendingDown, Calendar, ChevronRight, Sparkles, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +10,13 @@ import { formatCurrency } from '@/lib/utils'
 
 function ProjectCard({ project }: { project: Project }) {
   const navigate = useNavigate()
+  const qc = useQueryClient()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.projects.delete(project.id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
+  })
   const { data: analysis } = useQuery<AnalysisOut>({
     queryKey: ['analysis', project.id],
     queryFn: () => api.analysis.get(project.id),
@@ -28,7 +36,7 @@ function ProjectCard({ project }: { project: Project }) {
   })
 
   return (
-    <Card hover className="mb-3 animate-fade-in" onClick={() => navigate(`/analysis?project=${project.id}`)}>
+    <Card hover className="mb-3 animate-fade-in group" onClick={() => !confirmDelete && navigate(`/analysis?project=${project.id}`)}>
       <CardContent className="p-0">
         <div className="flex items-center gap-4 p-5">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4f7dff]/15 to-[#a855f7]/15 border border-black/8 flex items-center justify-center flex-none">
@@ -65,7 +73,39 @@ function ProjectCard({ project }: { project: Project }) {
                 <div className="text-sm font-mono text-purple-700 font-600">{formatCurrency(premium.total_cost)}/mo</div>
               </div>
             )}
-            <ChevronRight size={16} className="text-[#9099b0]" />
+
+            {/* Delete control */}
+            {confirmDelete ? (
+              <div
+                className="flex items-center gap-2"
+                onClick={e => e.stopPropagation()}
+              >
+                <span className="text-xs text-red-600 font-medium whitespace-nowrap">Delete project?</span>
+                <button
+                  onClick={() => deleteMutation.mutate()}
+                  disabled={deleteMutation.isPending}
+                  className="px-2.5 py-1 rounded-md bg-red-500 text-white text-xs font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
+                >
+                  {deleteMutation.isPending ? <Loader2 size={11} className="animate-spin" /> : 'Yes, delete'}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-2.5 py-1 rounded-md border border-black/10 text-xs text-[#6b7380] hover:bg-black/5 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[#9099b0] hover:text-red-500 hover:bg-red-50 transition-all"
+                title="Delete project"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+
+            {!confirmDelete && <ChevronRight size={16} className="text-[#9099b0]" />}
           </div>
         </div>
         {analysis && budget > 0 && (
