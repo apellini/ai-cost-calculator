@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Save, Plus, Trash2, RefreshCw, Shield, User, Eye } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Save, Plus, Trash2, RefreshCw, Shield, User, Eye, CheckCircle, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { USERS } from '@/mocks/data'
+import { api } from '@/lib/api'
 
 const ROLE_CONFIG = {
   admin: { label: 'Admin', icon: Shield, variant: 'danger' as const },
@@ -12,9 +13,42 @@ const ROLE_CONFIG = {
   viewer: { label: 'Viewer', icon: Eye, variant: 'muted' as const },
 }
 
+function formatRelative(iso: string | null): string {
+  if (!iso) return 'never'
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
+  if (days === 0) return 'today'
+  if (days === 1) return 'yesterday'
+  return `${days} days ago`
+}
+
 export default function Settings() {
+  const qc = useQueryClient()
   const [llmBackend, setLlmBackend] = useState<'ollama' | 'lmstudio' | 'openai_compat' | 'mock'>('mock')
   const [refreshInterval, setRefreshInterval] = useState<'daily' | 'weekly' | 'manual'>('daily')
+  const [refreshDone, setRefreshDone] = useState(false)
+
+  const { data: staleness } = useQuery({
+    queryKey: ['staleness'],
+    queryFn: api.snapshots.staleness,
+    staleTime: 30_000,
+    retry: false,
+  })
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: api.users.list,
+    retry: false,
+  })
+
+  const refreshMutation = useMutation({
+    mutationFn: api.snapshots.refresh,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staleness'] })
+      qc.invalidateQueries({ queryKey: ['models'] })
+      setRefreshDone(true)
+      setTimeout(() => setRefreshDone(false), 3000)
+    },
+  })
 
   return (
     <div className="p-6 max-w-3xl mx-auto animate-fade-in">
@@ -46,7 +80,9 @@ export default function Settings() {
                 ))}
               </div>
               {llmBackend === 'mock' && (
-                <p className="text-xs text-amber-600 mt-2 bg-amber-50 border border-amber-200 rounded px-3 py-2">Mock mode: using pre-scripted responses. Switch to Ollama or LM Studio for real LLM analysis.</p>
+                <p className="text-xs text-amber-600 mt-2 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                  Mock mode: using pre-scripted responses. Switch to Ollama or LM Studio for real LLM analysis.
+                </p>
               )}
             </div>
             {llmBackend !== 'mock' && (
@@ -98,11 +134,33 @@ export default function Settings() {
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-[#9099b0] mt-2">Managed by APScheduler inside the app process — no external cron needed.</p>
+              <p className="text-xs text-[#9099b0] mt-2">
+                Managed by APScheduler inside the app process — no external cron needed.
+              </p>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-black/8">
-              <div className="text-xs text-[#6b7380]">Last refresh: <span className="text-[#0f1117] font-medium">3 days ago</span></div>
-              <Button variant="secondary" size="sm"><RefreshCw size={13} /> Refresh Now</Button>
+              <div className="text-xs text-[#6b7380]">
+                Last refresh:{' '}
+                <span className={`font-medium ${staleness?.is_stale ? 'text-amber-600' : 'text-[#0f1117]'}`}>
+                  {staleness ? formatRelative(staleness.last_updated) : '—'}
+                </span>
+                {staleness && (
+                  <span className="text-[#9099b0] ml-1">({staleness.model_count} models)</span>
+                )}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => refreshMutation.mutate()}
+                disabled={refreshMutation.isPending}
+              >
+                {refreshMutation.isPending
+                  ? <><Loader2 size={13} className="animate-spin" /> Refreshing…</>
+                  : refreshDone
+                    ? <><CheckCircle size={13} className="text-green-600" /> Done</>
+                    : <><RefreshCw size={13} /> Refresh Now</>
+                }
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -125,19 +183,19 @@ export default function Settings() {
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5">
-              {USERS.map(user => {
-                const roleConf = ROLE_CONFIG[user.role]
+              {users.map(user => {
+                const roleConf = ROLE_CONFIG[user.role as keyof typeof ROLE_CONFIG] ?? ROLE_CONFIG.viewer
                 const RoleIcon = roleConf.icon
                 return (
                   <tr key={user.id} className="hover:bg-[#f8f9fb] transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#4f7dff]/30 to-[#a855f7]/30 flex items-center justify-center text-[10px] font-bold text-[#4f7dff]">
-                          {user.name.split(' ').map(n => n[0]).join('')}
+                          {user.email.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-[#0f1117]">{user.name}</div>
-                          <div className="text-[10px] text-[#9099b0]">{user.email}</div>
+                          <div className="text-xs font-medium text-[#0f1117]">{user.email}</div>
+                          <div className="text-[10px] text-[#9099b0]">{user.role}</div>
                         </div>
                       </div>
                     </td>
@@ -146,7 +204,9 @@ export default function Settings() {
                         <RoleIcon size={9} /> {roleConf.label}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right text-xs text-[#6b7380]">{user.lastActive}</td>
+                    <td className="px-4 py-3 text-right text-xs text-[#6b7380]">
+                      {user.last_active_at ? formatRelative(user.last_active_at) : '—'}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       {user.role !== 'admin' && (
                         <button className="text-[#9099b0] hover:text-red-500 transition-colors p-1">

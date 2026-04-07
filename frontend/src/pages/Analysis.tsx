@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, ChevronRight, Clock, Download, Loader2, RefreshCw, Sparkles, TrendingDown, AlertCircle } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Loader2, Sparkles, TrendingDown, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { api, type AnalysisOut, type BundleOut, type ProjectDetail } from '@/lib/api'
 import { formatCurrency, formatTokens } from '@/lib/utils'
+import ExportMenu from '@/components/ExportMenu'
+import StalenessIndicator from '@/components/StalenessIndicator'
 
 const CATEGORY_LABELS: Record<string, string> = {
   qa_chatbot: 'Q&A', reasoning_analysis: 'Reasoning', summarization: 'Summarization',
@@ -80,17 +82,15 @@ export default function Analysis() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-700 text-[#0f1117]">Cost Analysis</h1>
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-[#6b7380]">
-            <span>{project?.name ?? '…'}</span>
-            <span>·</span>
-            <Clock size={11} />
-            <span>Prices last updated 3 days ago</span>
-            <button className="text-[#4f7dff] hover:underline flex items-center gap-1"><RefreshCw size={10} /> Refresh</button>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-xs text-[#9099b0]">{project?.name ?? '…'}</span>
+            <StalenessIndicator />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm"><Download size={13} /> Export PDF</Button>
-          <Button variant="secondary" size="sm"><Download size={13} /> CSV</Button>
+          {analysis && project && (
+            <ExportMenu projectId={projectId} projectName={project.name} />
+          )}
           <Button
             variant="primary" size="sm"
             onClick={() => runAnalysis.mutate()}
@@ -101,6 +101,19 @@ export default function Analysis() {
           </Button>
         </div>
       </div>
+
+      {/* Background queued banner */}
+      {(analysis?.is_background || runAnalysis.data?.is_background) && analysis?.status === 'queued' && (
+        <div className="mb-6 flex items-center gap-3 p-4 rounded-xl bg-[#4f7dff]/6 border border-[#4f7dff]/20 text-sm text-[#4f7dff]">
+          <Loader2 size={16} className="animate-spin flex-none" />
+          <div>
+            <div className="font-medium">Analysis running in background</div>
+            <div className="text-xs text-[#4f7dff]/70 mt-0.5">
+              This analysis requires LLM decomposition. You'll get a notification when it's ready.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* No analysis yet */}
       {!analysisLoading && !analysis && !runAnalysis.isPending && (

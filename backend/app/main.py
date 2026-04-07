@@ -5,7 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import engine
-from app.routers import analysis, auth, chat, models, projects, scenarios, task_categories, timeline, users
+from app.routers import analysis, auth, chat, exports, models, notifications, projects, scenarios, snapshots, task_categories, timeline, users
+from app.scheduler import init_scheduler, shutdown_scheduler
 
 settings = get_settings()
 
@@ -13,8 +14,10 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    init_scheduler()
     yield
     # Shutdown
+    shutdown_scheduler()
     await engine.dispose()
 
 
@@ -41,6 +44,9 @@ app.include_router(task_categories.router)
 app.include_router(analysis.router)
 app.include_router(scenarios.router)
 app.include_router(timeline.router)
+app.include_router(snapshots.router)
+app.include_router(exports.router)
+app.include_router(notifications.router)
 app.include_router(chat.router)
 
 

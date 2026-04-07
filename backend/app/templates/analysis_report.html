@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Inter, sans-serif; font-size: 11px; color: #0f1117; background: #fff; }
+
+  .page { padding: 40px; max-width: 900px; margin: 0 auto; }
+
+  .header { border-bottom: 2px solid #0f1117; padding-bottom: 16px; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header .meta { color: #6b7380; margin-top: 4px; font-size: 10px; }
+
+  .bundle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .bundle-card { border-radius: 8px; padding: 14px 16px; border: 1px solid; }
+  .bundle-card.economy  { background: rgba(22,163,74,0.05);  border-color: rgba(22,163,74,0.25);  }
+  .bundle-card.balanced { background: rgba(79,125,255,0.05); border-color: rgba(79,125,255,0.25); }
+  .bundle-card.premium  { background: rgba(147,51,234,0.05); border-color: rgba(147,51,234,0.25); }
+  .bundle-card .tier { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 6px; }
+  .bundle-card.economy  .tier { color: #16a34a; }
+  .bundle-card.balanced .tier { color: #4f7dff; }
+  .bundle-card.premium  .tier { color: #9333ea; }
+  .bundle-card .total { font-size: 20px; font-weight: 700; }
+  .bundle-card.economy  .total { color: #16a34a; }
+  .bundle-card.balanced .total { color: #4f7dff; }
+  .bundle-card.premium  .total { color: #9333ea; }
+  .bundle-card .sub { color: #6b7380; font-size: 9px; margin-top: 2px; }
+
+  h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; margin-top: 24px; }
+  h2:first-of-type { margin-top: 0; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #f8f9fb; }
+  th { text-align: left; padding: 8px 10px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: #9099b0; border-bottom: 1px solid #e5e7eb; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .mono { font-family: monospace; }
+  .right { text-align: right; }
+  .muted { color: #9099b0; font-size: 9px; }
+
+  .warnings { margin-top: 20px; }
+  .warning-item { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; color: #92400e; font-size: 10px; }
+
+  .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e5e7eb; color: #9099b0; font-size: 9px; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h1>AI Cost Analysis Report</h1>
+    <div class="meta">
+      Project: {{ project_name }} &nbsp;·&nbsp;
+      Generated: {{ generated_at }} &nbsp;·&nbsp;
+      Scenario #{{ scenario_id }}
+    </div>
+  </div>
+
+  <!-- Bundle summary -->
+  <h2>Bundle Cost Summary</h2>
+  <div class="bundle-grid">
+    {% for bundle in bundles %}
+    <div class="bundle-card {{ bundle.tier }}">
+      <div class="tier">{{ bundle.tier | capitalize }}</div>
+      <div class="total">${{ "%.2f" | format(bundle.total_cost) }}</div>
+      <div class="sub">per month</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Per-feature breakdown per tier -->
+  {% for bundle in bundles %}
+  <h2>{{ bundle.tier | capitalize }} Bundle — Feature Breakdown</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Model</th>
+        <th class="right">Input Tokens</th>
+        <th class="right">Output Tokens</th>
+        <th class="right">Cost / mo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fc in bundle.feature_costs %}
+      <tr>
+        <td>{{ feature_names.get(fc.feature_id, "Feature " ~ fc.feature_id) }}</td>
+        <td class="mono muted">{{ fc.model_slug }}</td>
+        <td class="right mono">{{ "{:,}".format(fc.input_tokens) }}</td>
+        <td class="right mono">{{ "{:,}".format(fc.output_tokens) }}</td>
+        <td class="right mono">${{ "%.4f" | format(fc.cost) }}</td>
+      </tr>
+      {% endfor %}
+      <tr style="font-weight:600; background:#f8f9fb;">
+        <td colspan="4">Total</td>
+        <td class="right mono">${{ "%.2f" | format(bundle.total_cost) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endfor %}
+
+  {% if warnings %}
+  <div class="warnings">
+    <h2>Warnings</h2>
+    {% for w in warnings %}
+    <div class="warning-item">⚠ {{ w }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="footer">
+    <span>AI Cost Calculator</span>
+    <span>{{ generated_at }}</span>
+  </div>
+</div>
+</body>
+</html>

@@ -129,6 +129,7 @@ export interface AnalysisOut {
   bundles: BundleOut[]
   elapsed_seconds: number | null
   warnings: string[]
+  is_background: boolean
 }
 
 export interface TaskCategory {
@@ -161,6 +162,46 @@ export interface ComparisonOut {
   delta: number
   delta_pct: number
   feature_deltas: FeatureDelta[]
+}
+
+export interface NotificationOut {
+  id: number
+  project_id: number | null
+  type: string
+  title: string
+  message: string
+  is_read: boolean
+  created_at: string
+}
+
+export interface UserOut {
+  id: number
+  email: string
+  name: string
+  role: string
+  is_active: boolean
+  last_active_at: string | null
+}
+
+export interface SnapshotOut {
+  id: number
+  scenario_id: number
+  label: string | null
+  captured_at: string
+  model_count: number
+  created_at: string
+}
+
+export interface StalenessOut {
+  last_updated: string | null
+  days_since_update: number | null
+  is_stale: boolean
+  model_count: number
+}
+
+export interface RefreshOut {
+  models_updated: number
+  message: string
 }
 
 export interface FeatureTimelineOut {
@@ -234,6 +275,49 @@ export const api = {
   // Task categories
   taskCategories: {
     list: () => request<TaskCategory[]>('/api/task-categories'),
+  },
+
+  // Notifications
+  notifications: {
+    list: () => request<NotificationOut[]>('/api/notifications'),
+    unreadCount: () => request<{ count: number }>('/api/notifications/unread-count'),
+    markRead: (id: number) => request<NotificationOut>(`/api/notifications/${id}/read`, { method: 'POST' }),
+    markAllRead: () => request<{ ok: boolean }>('/api/notifications/read-all', { method: 'POST' }),
+  },
+
+  // Exports & sharing
+  exports: {
+    download: async (projectId: number, format: 'json' | 'csv' | 'pdf', filename: string) => {
+      const token = getToken()
+      const res = await fetch(`${BASE}/api/projects/${projectId}/export/${format}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) throw new Error(`Export failed: ${res.status}`)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    },
+    share: (projectId: number) =>
+      request<{ token: string; url: string; label: string | null; created_at: string }>(
+        `/api/projects/${projectId}/share`,
+        { method: 'POST' }
+      ),
+  },
+
+  // Users (admin)
+  users: {
+    list: () => request<UserOut[]>('/api/users'),
+  },
+
+  // Snapshots & pricing staleness
+  snapshots: {
+    list: (projectId: number) => request<SnapshotOut[]>(`/api/projects/${projectId}/snapshots`),
+    staleness: () => request<StalenessOut>('/api/models/staleness'),
+    refresh: () => request<RefreshOut>('/api/models/refresh', { method: 'POST' }),
   },
 
   // Timeline

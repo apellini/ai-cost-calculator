@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Plus, MessageSquare, BarChart3, GitCompare,
   Clock, Database, Settings, ChevronRight, Zap, LogOut
 } from 'lucide-react'
+import NotificationBell from '@/components/NotificationBell'
 
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -102,8 +103,14 @@ export function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-[#f2f4f8]">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto bg-[#f2f4f8] flex flex-col">
+        {/* Top bar */}
+        <div className="h-10 flex-none flex items-center justify-end px-4 bg-white border-b border-black/7">
+          <NotificationBell />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

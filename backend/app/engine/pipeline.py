@@ -23,6 +23,7 @@ from app.engine.cost_calculator import FeatureCost
 from app.engine.sanity_checker import CategoryBounds, SanityWarning, check_sub_task, SubTaskTokens
 from app.llm.base import LLMAdapter
 from app.models.bundle import Bundle, BundleFeatureCost, Scenario
+from app.services.snapshot_service import create_snapshot
 from app.models.project import Feature, Project, SubTask, TaskCategory
 from app.models.provider import LLMModel
 
@@ -218,6 +219,10 @@ async def run_analysis(
     scenario = await db.get(Scenario, scenario_id)
     if scenario:
         scenario.status = "ready"
+
+    # Capture immutable pricing snapshot
+    await create_snapshot(scenario_id, db)
+
     await db.commit()
 
     return PipelineResult(

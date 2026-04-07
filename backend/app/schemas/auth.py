@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 
@@ -16,6 +17,8 @@ class UserOut(BaseModel):
     email: str
     name: str
     role: str
+    is_active: bool = True
+    last_active_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
