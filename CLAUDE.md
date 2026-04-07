@@ -14,3 +14,6 @@ Objective: Create a calculator that helps to understand costs of AI Utilization 
 
 # Budget
 - Don't try to give a result that covers all requirements if budget is not enough to reach the objective. You have to guarantee the best quality.
+
+# Dev rule
+After each mods at the end of reasoning commit and push mods that has to be tested

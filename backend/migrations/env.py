@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from app.config import get_settings
 from app.database import Base
 
 # this is the Alembic Config object
@@ -14,6 +15,9 @@ config = context.config
 # Interpret the config file for Python logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Override the URL from .env so we never rely on the hardcoded alembic.ini value
+config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 # Import all models so Alembic can detect them
 import app.models  # noqa: F401, E402
