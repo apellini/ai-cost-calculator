@@ -1,0 +1,191 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.database import get_db
+from app.models.project import Feature, Project, SubTask
+from app.schemas.project import (
+    FeatureCreate, FeatureOut, FeatureUpdate,
+    ProjectCreate, ProjectDetail, ProjectOut, ProjectUpdate,
+)
+
+router = APIRouter(prefix="/api/projects", tags=["projects"])
+
+# ── helpers ───────────────────────────────────────────────────────────────────
+
+DEMO_OWNER_ID = 1  # replaced by JWT auth in Phase 9
+
+
+def _compute_token_totals(sub_tasks: list) -> tuple[int, int]:
+    total_in = total_out = 0
+    for st in sub_tasks:
+        rounds = st.interaction_rounds
+        mult = float(st.worst_case_multiplier)
+        total_in += int((st.system_prompt_tokens + st.input_context_tokens) * rounds * mult)
+        total_out += int(st.output_tokens * rounds * mult)
+    return total_in, total_out
+
+
+async def _get_project_or_404(project_id: int, db: AsyncSession) -> Project:
+    project = await db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
+
+
+async def _enrich_project(project: Project, db: AsyncSession) -> ProjectOut:
+    count = await db.scalar(
+        select(func.count()).where(Feature.project_id == project.id)
+    )
+    out = ProjectOut.model_validate(project)
+    out.feature_count = count or 0
+    return out
+
+
+# ── projects ──────────────────────────────────────────────────────────────────
+
+@router.get("", response_model=list[ProjectOut])
+async def list_projects(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Project).order_by(Project.updated_at.desc())
+    )
+    projects = result.scalars().all()
+    return [await _enrich_project(p, db) for p in projects]
+
+
+@router.post("", response_model=ProjectOut, status_code=201)
+async def create_project(body: ProjectCreate, db: AsyncSession = Depends(get_db)):
+    project = Project(owner_id=DEMO_OWNER_ID, **body.model_dump())
+    db.add(project)
+    await db.commit()
+    await db.refresh(project)
+    return await _enrich_project(project, db)
+
+
+@router.get("/{project_id}", response_model=ProjectDetail)
+async def get_project(project_id: int, db: AsyncSession = Depends(get_db)):
+    stmt = (
+        select(Project)
+        .options(
+            selectinload(Project.features).selectinload(Feature.sub_tasks)
+        )
+        .where(Project.id == project_id)
+    )
+    project = await db.scalar(stmt)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    out = ProjectDetail.model_validate(project)
+    out.feature_count = len(project.features)
+    return out
+
+
+@router.patch("/{project_id}", response_model=ProjectOut)
+async def update_project(
+    project_id: int, body: ProjectUpdate, db: AsyncSession = Depends(get_db)
+):
+    project = await _get_project_or_404(project_id, db)
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(project, field, value)
+    await db.commit()
+    await db.refresh(project)
+    return await _enrich_project(project, db)
+
+
+@router.delete("/{project_id}", status_code=204)
+async def delete_project(project_id: int, db: AsyncSession = Depends(get_db)):
+    project = await _get_project_or_404(project_id, db)
+    await db.delete(project)
+    await db.commit()
+
+
+# ── features ──────────────────────────────────────────────────────────────────
+
+@router.get("/{project_id}/features", response_model=list[FeatureOut])
+async def list_features(project_id: int, db: AsyncSession = Depends(get_db)):
+    await _get_project_or_404(project_id, db)
+    result = await db.execute(
+        select(Feature)
+        .options(selectinload(Feature.sub_tasks))
+        .where(Feature.project_id == project_id)
+        .order_by(Feature.order, Feature.priority)
+    )
+    return result.scalars().all()
+
+
+@router.post("/{project_id}/features", response_model=FeatureOut, status_code=201)
+async def add_feature(
+    project_id: int, body: FeatureCreate, db: AsyncSession = Depends(get_db)
+):
+    await _get_project_or_404(project_id, db)
+
+    # Count existing features for ordering
+    count = await db.scalar(
+        select(func.count()).where(Feature.project_id == project_id)
+    )
+
+    feature = Feature(
+        project_id=project_id,
+        name=body.name,
+        description=body.description,
+        category=body.category,
+        priority=body.priority,
+        order=count or 0,
+    )
+    db.add(feature)
+    await db.flush()
+
+    for i, st_data in enumerate(body.sub_tasks):
+        sub = SubTask(feature_id=feature.id, order=i, **st_data.model_dump())
+        db.add(sub)
+
+    await db.flush()
+
+    # Recompute token totals
+    subs = (await db.execute(
+        select(SubTask).where(SubTask.feature_id == feature.id)
+    )).scalars().all()
+    feature.total_input_tokens, feature.total_output_tokens = _compute_token_totals(subs)
+
+    await db.commit()
+
+    stmt = (
+        select(Feature)
+        .options(selectinload(Feature.sub_tasks))
+        .where(Feature.id == feature.id)
+    )
+    return await db.scalar(stmt)
+
+
+@router.patch("/{project_id}/features/{feature_id}", response_model=FeatureOut)
+async def update_feature(
+    project_id: int,
+    feature_id: int,
+    body: FeatureUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    feature = await db.scalar(
+        select(Feature)
+        .options(selectinload(Feature.sub_tasks))
+        .where(Feature.id == feature_id, Feature.project_id == project_id)
+    )
+    if not feature:
+        raise HTTPException(status_code=404, detail="Feature not found")
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(feature, field, value)
+    await db.commit()
+    await db.refresh(feature)
+    return feature
+
+
+@router.delete("/{project_id}/features/{feature_id}", status_code=204)
+async def delete_feature(
+    project_id: int, feature_id: int, db: AsyncSession = Depends(get_db)
+):
+    feature = await db.scalar(
+        select(Feature).where(Feature.id == feature_id, Feature.project_id == project_id)
+    )
+    if not feature:
+        raise HTTPException(status_code=404, detail="Feature not found")
+    await db.delete(feature)
+    await db.commit()
