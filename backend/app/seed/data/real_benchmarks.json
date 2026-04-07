@@ -1,0 +1,18 @@
+[
+  { "slug": "gpt-4o",              "mmlu": 88.7, "human_eval": 90.2, "math": 76.6, "reasoning": 87.0, "speed_tps": 80  },
+  { "slug": "gpt-4o-mini",         "mmlu": 82.0, "human_eval": 87.2, "math": 70.2, "reasoning": 78.0, "speed_tps": 180 },
+  { "slug": "o1",                  "mmlu": 92.3, "human_eval": 92.4, "math": 94.8, "reasoning": 96.0, "speed_tps": 25  },
+  { "slug": "o3-mini",             "mmlu": 86.9, "human_eval": 91.6, "math": 90.0, "reasoning": 92.0, "speed_tps": 60  },
+  { "slug": "claude-3-5-sonnet",   "mmlu": 88.7, "human_eval": 93.7, "math": 71.1, "reasoning": 89.0, "speed_tps": 85  },
+  { "slug": "claude-3-5-haiku",    "mmlu": 75.2, "human_eval": 88.0, "math": 61.0, "reasoning": 74.0, "speed_tps": 200 },
+  { "slug": "claude-3-opus",       "mmlu": 86.8, "human_eval": 84.9, "math": 60.1, "reasoning": 87.0, "speed_tps": 30  },
+  { "slug": "claude-3-haiku",      "mmlu": 75.2, "human_eval": 75.9, "math": 38.9, "reasoning": 68.0, "speed_tps": 250 },
+  { "slug": "gemini-1-5-pro",      "mmlu": 85.9, "human_eval": 84.1, "math": 67.7, "reasoning": 85.0, "speed_tps": 70  },
+  { "slug": "gemini-1-5-flash",    "mmlu": 78.9, "human_eval": 74.3, "math": 54.9, "reasoning": 72.0, "speed_tps": 250 },
+  { "slug": "gemini-2-0-flash",    "mmlu": 76.0, "human_eval": 71.5, "math": 58.0, "reasoning": 74.0, "speed_tps": 300 },
+  { "slug": "mistral-large",       "mmlu": 84.0, "human_eval": 92.1, "math": 62.5, "reasoning": 81.0, "speed_tps": 60  },
+  { "slug": "mistral-small",       "mmlu": 72.0, "human_eval": 78.3, "math": 48.0, "reasoning": 66.0, "speed_tps": 120 },
+  { "slug": "mistral-nemo",        "mmlu": 68.0, "human_eval": 62.0, "math": 40.0, "reasoning": 60.0, "speed_tps": 200 },
+  { "slug": "llama-3-1-70b",       "mmlu": 83.6, "human_eval": 80.5, "math": 58.4, "reasoning": 76.0, "speed_tps": 50  },
+  { "slug": "llama-3-1-8b",        "mmlu": 66.7, "human_eval": 72.6, "math": 37.2, "reasoning": 55.0, "speed_tps": 220 }
+]

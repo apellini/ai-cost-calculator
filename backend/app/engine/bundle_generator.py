@@ -43,7 +43,10 @@ def _best_model_for_tier(
     if tier == "economy":
         eligible = [m for m in candidates if m.output_per_1m <= ECONOMY_MAX_OUTPUT_PRICE]
         pool = eligible or candidates  # fall back to all if none qualify
-        return max(pool, key=task_score)
+        # Pick cheapest model with acceptable quality (task_fit >= 50).
+        # Minimising price guarantees economy is always the lowest-cost tier.
+        acceptable = [m for m in pool if task_score(m) >= 50]
+        return min(acceptable or pool, key=lambda m: m.output_per_1m)
 
     if tier == "balanced":
         # Score = task_fit / log(output_price + 1) — rewards quality, penalises cost logarithmically

@@ -1,0 +1,242 @@
+[
+  {
+    "provider": "OpenAI",
+    "slug": "gpt-4o",
+    "display_name": "GPT-4o",
+    "context_window": 128000,
+    "input_per_1m": 2.50,
+    "output_per_1m": 10.00,
+    "batch_per_1m": 1.25,
+    "cached_input_per_1m": 1.25,
+    "task_fit": {
+      "qa_chatbot": 90, "reasoning_analysis": 88, "summarization": 87,
+      "code_review": 88, "content_generation": 89, "code_generation": 88,
+      "data_extraction": 85, "translation": 88
+    }
+  },
+  {
+    "provider": "OpenAI",
+    "slug": "gpt-4o-mini",
+    "display_name": "GPT-4o mini",
+    "context_window": 128000,
+    "input_per_1m": 0.15,
+    "output_per_1m": 0.60,
+    "batch_per_1m": 0.075,
+    "cached_input_per_1m": 0.075,
+    "task_fit": {
+      "qa_chatbot": 75, "reasoning_analysis": 68, "summarization": 74,
+      "code_review": 70, "content_generation": 72, "code_generation": 72,
+      "data_extraction": 68, "translation": 78
+    }
+  },
+  {
+    "provider": "OpenAI",
+    "slug": "o1",
+    "display_name": "o1",
+    "context_window": 200000,
+    "input_per_1m": 15.00,
+    "output_per_1m": 60.00,
+    "batch_per_1m": null,
+    "cached_input_per_1m": 7.50,
+    "task_fit": {
+      "qa_chatbot": 82, "reasoning_analysis": 97, "summarization": 78,
+      "code_review": 94, "content_generation": 75, "code_generation": 96,
+      "data_extraction": 88, "translation": 72
+    }
+  },
+  {
+    "provider": "OpenAI",
+    "slug": "o3-mini",
+    "display_name": "o3-mini",
+    "context_window": 200000,
+    "input_per_1m": 1.10,
+    "output_per_1m": 4.40,
+    "batch_per_1m": null,
+    "cached_input_per_1m": 0.55,
+    "task_fit": {
+      "qa_chatbot": 74, "reasoning_analysis": 92, "summarization": 68,
+      "code_review": 89, "content_generation": 65, "code_generation": 91,
+      "data_extraction": 78, "translation": 60
+    }
+  },
+  {
+    "provider": "Anthropic",
+    "slug": "claude-3-5-sonnet",
+    "display_name": "Claude 3.5 Sonnet",
+    "context_window": 200000,
+    "input_per_1m": 3.00,
+    "output_per_1m": 15.00,
+    "batch_per_1m": 1.50,
+    "cached_input_per_1m": 0.30,
+    "task_fit": {
+      "qa_chatbot": 91, "reasoning_analysis": 90, "summarization": 92,
+      "code_review": 94, "content_generation": 93, "code_generation": 95,
+      "data_extraction": 89, "translation": 88
+    }
+  },
+  {
+    "provider": "Anthropic",
+    "slug": "claude-3-5-haiku",
+    "display_name": "Claude 3.5 Haiku",
+    "context_window": 200000,
+    "input_per_1m": 0.80,
+    "output_per_1m": 4.00,
+    "batch_per_1m": 0.40,
+    "cached_input_per_1m": 0.08,
+    "task_fit": {
+      "qa_chatbot": 78, "reasoning_analysis": 72, "summarization": 78,
+      "code_review": 76, "content_generation": 76, "code_generation": 78,
+      "data_extraction": 74, "translation": 80
+    }
+  },
+  {
+    "provider": "Anthropic",
+    "slug": "claude-3-opus",
+    "display_name": "Claude 3 Opus",
+    "context_window": 200000,
+    "input_per_1m": 15.00,
+    "output_per_1m": 75.00,
+    "batch_per_1m": 7.50,
+    "cached_input_per_1m": 1.50,
+    "task_fit": {
+      "qa_chatbot": 93, "reasoning_analysis": 95, "summarization": 93,
+      "code_review": 92, "content_generation": 94, "code_generation": 90,
+      "data_extraction": 92, "translation": 91
+    }
+  },
+  {
+    "provider": "Anthropic",
+    "slug": "claude-3-haiku",
+    "display_name": "Claude 3 Haiku",
+    "context_window": 200000,
+    "input_per_1m": 0.25,
+    "output_per_1m": 1.25,
+    "batch_per_1m": 0.125,
+    "cached_input_per_1m": 0.03,
+    "task_fit": {
+      "qa_chatbot": 70, "reasoning_analysis": 62, "summarization": 72,
+      "code_review": 65, "content_generation": 68, "code_generation": 65,
+      "data_extraction": 64, "translation": 74
+    }
+  },
+  {
+    "provider": "Google",
+    "slug": "gemini-1-5-pro",
+    "display_name": "Gemini 1.5 Pro",
+    "context_window": 1048576,
+    "input_per_1m": 3.50,
+    "output_per_1m": 10.50,
+    "batch_per_1m": null,
+    "cached_input_per_1m": 0.875,
+    "task_fit": {
+      "qa_chatbot": 88, "reasoning_analysis": 87, "summarization": 91,
+      "code_review": 84, "content_generation": 88, "code_generation": 85,
+      "data_extraction": 90, "translation": 92
+    }
+  },
+  {
+    "provider": "Google",
+    "slug": "gemini-1-5-flash",
+    "display_name": "Gemini 1.5 Flash",
+    "context_window": 1048576,
+    "input_per_1m": 0.075,
+    "output_per_1m": 0.30,
+    "batch_per_1m": null,
+    "cached_input_per_1m": 0.019,
+    "task_fit": {
+      "qa_chatbot": 74, "reasoning_analysis": 68, "summarization": 76,
+      "code_review": 68, "content_generation": 72, "code_generation": 70,
+      "data_extraction": 72, "translation": 80
+    }
+  },
+  {
+    "provider": "Google",
+    "slug": "gemini-2-0-flash",
+    "display_name": "Gemini 2.0 Flash",
+    "context_window": 1048576,
+    "input_per_1m": 0.10,
+    "output_per_1m": 0.40,
+    "batch_per_1m": null,
+    "cached_input_per_1m": 0.025,
+    "task_fit": {
+      "qa_chatbot": 78, "reasoning_analysis": 74, "summarization": 78,
+      "code_review": 72, "content_generation": 76, "code_generation": 74,
+      "data_extraction": 76, "translation": 82
+    }
+  },
+  {
+    "provider": "Mistral",
+    "slug": "mistral-large",
+    "display_name": "Mistral Large",
+    "context_window": 131072,
+    "input_per_1m": 8.00,
+    "output_per_1m": 24.00,
+    "batch_per_1m": null,
+    "cached_input_per_1m": null,
+    "task_fit": {
+      "qa_chatbot": 82, "reasoning_analysis": 83, "summarization": 82,
+      "code_review": 82, "content_generation": 80, "code_generation": 83,
+      "data_extraction": 80, "translation": 84
+    }
+  },
+  {
+    "provider": "Mistral",
+    "slug": "mistral-small",
+    "display_name": "Mistral Small",
+    "context_window": 32768,
+    "input_per_1m": 2.00,
+    "output_per_1m": 6.00,
+    "batch_per_1m": null,
+    "cached_input_per_1m": null,
+    "task_fit": {
+      "qa_chatbot": 72, "reasoning_analysis": 68, "summarization": 72,
+      "code_review": 70, "content_generation": 68, "code_generation": 70,
+      "data_extraction": 66, "translation": 75
+    }
+  },
+  {
+    "provider": "Mistral",
+    "slug": "mistral-nemo",
+    "display_name": "Mistral Nemo",
+    "context_window": 131072,
+    "input_per_1m": 0.15,
+    "output_per_1m": 0.15,
+    "batch_per_1m": null,
+    "cached_input_per_1m": null,
+    "task_fit": {
+      "qa_chatbot": 65, "reasoning_analysis": 58, "summarization": 66,
+      "code_review": 60, "content_generation": 62, "code_generation": 62,
+      "data_extraction": 58, "translation": 70
+    }
+  },
+  {
+    "provider": "Meta",
+    "slug": "llama-3-1-70b",
+    "display_name": "Llama 3.1 70B",
+    "context_window": 128000,
+    "input_per_1m": 0.88,
+    "output_per_1m": 0.88,
+    "batch_per_1m": null,
+    "cached_input_per_1m": null,
+    "task_fit": {
+      "qa_chatbot": 78, "reasoning_analysis": 76, "summarization": 78,
+      "code_review": 74, "content_generation": 75, "code_generation": 76,
+      "data_extraction": 72, "translation": 78
+    }
+  },
+  {
+    "provider": "Meta",
+    "slug": "llama-3-1-8b",
+    "display_name": "Llama 3.1 8B",
+    "context_window": 128000,
+    "input_per_1m": 0.06,
+    "output_per_1m": 0.06,
+    "batch_per_1m": null,
+    "cached_input_per_1m": null,
+    "task_fit": {
+      "qa_chatbot": 58, "reasoning_analysis": 50, "summarization": 60,
+      "code_review": 52, "content_generation": 55, "code_generation": 54,
+      "data_extraction": 50, "translation": 62
+    }
+  }
+]

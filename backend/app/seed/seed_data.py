@@ -165,6 +165,61 @@ async def seed_demo_project(session: AsyncSession, owner: User) -> None:
         feature.total_output_tokens = total_output
 
 
+async def seed_real_providers_and_models(session: AsyncSession) -> None:
+    providers_data = json.loads((DATA_DIR / "real_providers.json").read_text())
+    models_data = json.loads((DATA_DIR / "real_models.json").read_text())
+    benchmarks_data = {b["slug"]: b for b in json.loads((DATA_DIR / "real_benchmarks.json").read_text())}
+
+    provider_map: dict[str, LLMProvider] = {}
+    for p in providers_data:
+        existing = await session.scalar(select(LLMProvider).where(LLMProvider.name == p["name"]))
+        if existing:
+            provider_map[p["name"]] = existing
+            continue
+        provider = LLMProvider(**p)
+        session.add(provider)
+        await session.flush()
+        provider_map[p["name"]] = provider
+
+    for m in models_data:
+        existing = await session.scalar(select(LLMModel).where(LLMModel.slug == m["slug"]))
+        if existing:
+            # Update pricing in case it changed
+            existing.input_per_1m = m["input_per_1m"]
+            existing.output_per_1m = m["output_per_1m"]
+            existing.batch_per_1m = m.get("batch_per_1m")
+            existing.cached_input_per_1m = m.get("cached_input_per_1m")
+            existing.task_fit = m.get("task_fit", {})
+            continue
+        provider = provider_map[m["provider"]]
+        model = LLMModel(
+            provider_id=provider.id,
+            slug=m["slug"],
+            display_name=m["display_name"],
+            context_window=m.get("context_window"),
+            input_per_1m=m["input_per_1m"],
+            output_per_1m=m["output_per_1m"],
+            batch_per_1m=m.get("batch_per_1m"),
+            cached_input_per_1m=m.get("cached_input_per_1m"),
+            volume_tiers=m.get("volume_tiers", []),
+            task_fit=m.get("task_fit", {}),
+        )
+        session.add(model)
+        await session.flush()
+
+        bench = benchmarks_data.get(m["slug"])
+        if bench:
+            bm = ModelBenchmark(
+                model_id=model.id,
+                mmlu=bench.get("mmlu"),
+                human_eval=bench.get("human_eval"),
+                math=bench.get("math"),
+                reasoning=bench.get("reasoning"),
+                speed_tps=bench.get("speed_tps"),
+            )
+            session.add(bm)
+
+
 async def run_seed(mode: str) -> None:
     await create_tables()
 
@@ -181,8 +236,14 @@ async def run_seed(mode: str) -> None:
                 await seed_demo_project(session, admin)
                 print("Done. Admin credentials: admin@example.com / admin1234")
             elif mode == "real":
-                print("Real data mode not yet implemented.")
-                sys.exit(1)
+                print("Seeding real commercial LLM providers (OpenAI, Anthropic, Google, Mistral, Meta)…")
+                print("Note: prices are approximate as of early 2025. Use the refresh endpoint to update.")
+                await seed_real_providers_and_models(session)
+                print("Seeding task categories…")
+                await seed_task_categories(session)
+                print("Seeding admin user…")
+                await seed_admin_user(session)
+                print("Done. Admin credentials: admin@example.com / admin1234")
             else:
                 print(f"Unknown mode: {mode}")
                 sys.exit(1)

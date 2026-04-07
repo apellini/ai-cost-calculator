@@ -45,6 +45,11 @@ export default function Analysis() {
     queryKey: ['analysis', projectId],
     queryFn: () => api.analysis.get(projectId),
     retry: false,
+    // Poll every 3s while background job is queued/running
+    refetchInterval: (query) => {
+      const status = query.state.data?.status
+      return status === 'queued' || status === 'running' ? 3000 : false
+    },
   })
 
   const runAnalysis = useMutation({
