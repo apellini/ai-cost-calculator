@@ -41,17 +41,17 @@ GREETING = (
 async def chat_ws(project_id: int, websocket: WebSocket):
     await websocket.accept()
 
-    llm = get_llm_adapter()
-
-    if project_id not in _sessions:
-        _sessions[project_id] = ConversationState(project_id=project_id)
-
-    state = _sessions[project_id]
-
-    async def send(msg: dict) -> None:
-        await websocket.send_text(json.dumps(msg))
-
     try:
+        llm = get_llm_adapter()
+
+        if project_id not in _sessions:
+            _sessions[project_id] = ConversationState(project_id=project_id)
+
+        state = _sessions[project_id]
+
+        async def send(msg: dict) -> None:
+            await websocket.send_text(json.dumps(msg))
+
         # Send greeting on first connect
         if state.turn == 0 and not state.history:
             state.history.append(ChatMessage(role="assistant", content=GREETING))
@@ -83,7 +83,7 @@ async def chat_ws(project_id: int, websocket: WebSocket):
     except Exception as exc:
         logger.exception("WebSocket error: project=%d error=%s", project_id, exc)
         try:
-            await send({"type": "error", "text": "Connection error. Please refresh and try again."})
+            await websocket.send_text(json.dumps({"type": "error", "text": "Connection error. Please refresh and try again."}))
         except Exception:
             pass
 
