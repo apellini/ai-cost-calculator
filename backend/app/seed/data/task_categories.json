@@ -1,0 +1,58 @@
+[
+  {
+    "slug": "qa_chatbot",
+    "label": "Q&A / Chatbot",
+    "description": "Conversational QA, customer support, FAQ answering",
+    "min_input_tokens": 100, "max_input_tokens": 50000,
+    "min_output_tokens": 50, "max_output_tokens": 2000
+  },
+  {
+    "slug": "reasoning_analysis",
+    "label": "Reasoning & Analysis",
+    "description": "Complex multi-step reasoning, analysis, and decision making",
+    "min_input_tokens": 500, "max_input_tokens": 100000,
+    "min_output_tokens": 200, "max_output_tokens": 8000
+  },
+  {
+    "slug": "summarization",
+    "label": "Summarization",
+    "description": "Condensing long documents, meeting transcripts, reports",
+    "min_input_tokens": 1000, "max_input_tokens": 200000,
+    "min_output_tokens": 100, "max_output_tokens": 4000
+  },
+  {
+    "slug": "code_review",
+    "label": "Code Review",
+    "description": "Reviewing PRs, identifying bugs, suggesting improvements",
+    "min_input_tokens": 500, "max_input_tokens": 50000,
+    "min_output_tokens": 200, "max_output_tokens": 5000
+  },
+  {
+    "slug": "content_generation",
+    "label": "Content Generation",
+    "description": "Writing documentation, marketing copy, blog posts",
+    "min_input_tokens": 100, "max_input_tokens": 10000,
+    "min_output_tokens": 500, "max_output_tokens": 16000
+  },
+  {
+    "slug": "code_generation",
+    "label": "Code Generation",
+    "description": "Generating code, scripts, boilerplate from specifications",
+    "min_input_tokens": 200, "max_input_tokens": 30000,
+    "min_output_tokens": 500, "max_output_tokens": 16000
+  },
+  {
+    "slug": "data_extraction",
+    "label": "Data Extraction",
+    "description": "Extracting structured data from unstructured text",
+    "min_input_tokens": 500, "max_input_tokens": 100000,
+    "min_output_tokens": 100, "max_output_tokens": 5000
+  },
+  {
+    "slug": "translation",
+    "label": "Translation",
+    "description": "Translating text between languages",
+    "min_input_tokens": 100, "max_input_tokens": 50000,
+    "min_output_tokens": 100, "max_output_tokens": 50000
+  }
+]

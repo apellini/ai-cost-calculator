@@ -1,0 +1,203 @@
+[
+  {
+    "provider": "NovaMind AI",
+    "slug": "nova-pro-7",
+    "display_name": "Nova Pro 7",
+    "context_window": 128000,
+    "input_per_1m": 12.00,
+    "output_per_1m": 36.00,
+    "batch_per_1m": 6.00,
+    "cached_input_per_1m": 3.00,
+    "volume_tiers": [
+      {"min_tokens": 1000000000, "discount_pct": 5},
+      {"min_tokens": 5000000000, "discount_pct": 10}
+    ],
+    "task_fit": {
+      "qa_chatbot": 88, "reasoning_analysis": 85, "summarization": 82,
+      "code_review": 78, "content_generation": 90, "code_generation": 75,
+      "data_extraction": 80, "translation": 85
+    }
+  },
+  {
+    "provider": "NovaMind AI",
+    "slug": "nova-lite-3",
+    "display_name": "Nova Lite 3",
+    "context_window": 32000,
+    "input_per_1m": 0.80,
+    "output_per_1m": 2.40,
+    "batch_per_1m": 0.40,
+    "cached_input_per_1m": 0.20,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 70, "reasoning_analysis": 60, "summarization": 72,
+      "code_review": 55, "content_generation": 65, "code_generation": 58,
+      "data_extraction": 62, "translation": 75
+    }
+  },
+  {
+    "provider": "NovaMind AI",
+    "slug": "nova-code-5",
+    "display_name": "Nova Code 5",
+    "context_window": 64000,
+    "input_per_1m": 5.00,
+    "output_per_1m": 15.00,
+    "batch_per_1m": 2.50,
+    "cached_input_per_1m": 1.25,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 60, "reasoning_analysis": 72, "summarization": 55,
+      "code_review": 95, "content_generation": 58, "code_generation": 96,
+      "data_extraction": 70, "translation": 40
+    }
+  },
+  {
+    "provider": "Cortex Labs",
+    "slug": "cortex-ultra",
+    "display_name": "Cortex Ultra",
+    "context_window": 200000,
+    "input_per_1m": 18.00,
+    "output_per_1m": 54.00,
+    "batch_per_1m": 9.00,
+    "cached_input_per_1m": 4.50,
+    "volume_tiers": [
+      {"min_tokens": 1000000000, "discount_pct": 8},
+      {"min_tokens": 10000000000, "discount_pct": 15}
+    ],
+    "task_fit": {
+      "qa_chatbot": 92, "reasoning_analysis": 95, "summarization": 90,
+      "code_review": 88, "content_generation": 93, "code_generation": 85,
+      "data_extraction": 91, "translation": 89
+    }
+  },
+  {
+    "provider": "Cortex Labs",
+    "slug": "cortex-swift",
+    "display_name": "Cortex Swift",
+    "context_window": 16000,
+    "input_per_1m": 1.50,
+    "output_per_1m": 4.50,
+    "batch_per_1m": 0.75,
+    "cached_input_per_1m": 0.38,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 72, "reasoning_analysis": 62, "summarization": 78,
+      "code_review": 60, "content_generation": 70, "code_generation": 62,
+      "data_extraction": 65, "translation": 80
+    }
+  },
+  {
+    "provider": "Cortex Labs",
+    "slug": "cortex-reason-12",
+    "display_name": "Cortex Reason 12",
+    "context_window": 128000,
+    "input_per_1m": 10.00,
+    "output_per_1m": 30.00,
+    "batch_per_1m": 5.00,
+    "cached_input_per_1m": 2.50,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 78, "reasoning_analysis": 94, "summarization": 75,
+      "code_review": 82, "content_generation": 70, "code_generation": 80,
+      "data_extraction": 88, "translation": 65
+    }
+  },
+  {
+    "provider": "Zenith Systems",
+    "slug": "zenith-max",
+    "display_name": "Zenith Max",
+    "context_window": 128000,
+    "input_per_1m": 15.00,
+    "output_per_1m": 45.00,
+    "batch_per_1m": 7.50,
+    "cached_input_per_1m": 3.75,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 88, "reasoning_analysis": 90, "summarization": 92,
+      "code_review": 85, "content_generation": 91, "code_generation": 82,
+      "data_extraction": 87, "translation": 90
+    }
+  },
+  {
+    "provider": "Zenith Systems",
+    "slug": "zenith-flash",
+    "display_name": "Zenith Flash",
+    "context_window": 8000,
+    "input_per_1m": 0.30,
+    "output_per_1m": 0.90,
+    "batch_per_1m": 0.15,
+    "cached_input_per_1m": 0.08,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 58, "reasoning_analysis": 45, "summarization": 68,
+      "code_review": 42, "content_generation": 60, "code_generation": 45,
+      "data_extraction": 55, "translation": 72
+    }
+  },
+  {
+    "provider": "Helios Research",
+    "slug": "helios-omni",
+    "display_name": "Helios Omni",
+    "context_window": 96000,
+    "input_per_1m": 8.00,
+    "output_per_1m": 24.00,
+    "batch_per_1m": 4.00,
+    "cached_input_per_1m": 2.00,
+    "volume_tiers": [
+      {"min_tokens": 500000000, "discount_pct": 5},
+      {"min_tokens": 2000000000, "discount_pct": 12}
+    ],
+    "task_fit": {
+      "qa_chatbot": 84, "reasoning_analysis": 82, "summarization": 88,
+      "code_review": 80, "content_generation": 85, "code_generation": 78,
+      "data_extraction": 83, "translation": 86
+    }
+  },
+  {
+    "provider": "Helios Research",
+    "slug": "helios-mini",
+    "display_name": "Helios Mini",
+    "context_window": 32000,
+    "input_per_1m": 0.50,
+    "output_per_1m": 1.50,
+    "batch_per_1m": 0.25,
+    "cached_input_per_1m": 0.13,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 65, "reasoning_analysis": 55, "summarization": 70,
+      "code_review": 50, "content_generation": 62, "code_generation": 52,
+      "data_extraction": 58, "translation": 75
+    }
+  },
+  {
+    "provider": "OpenForge",
+    "slug": "forge-72b",
+    "display_name": "Forge 72B",
+    "context_window": 32000,
+    "input_per_1m": 2.00,
+    "output_per_1m": 6.00,
+    "batch_per_1m": 1.00,
+    "cached_input_per_1m": 0.50,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 78, "reasoning_analysis": 74, "summarization": 80,
+      "code_review": 76, "content_generation": 75, "code_generation": 78,
+      "data_extraction": 72, "translation": 82
+    }
+  },
+  {
+    "provider": "OpenForge",
+    "slug": "forge-8b",
+    "display_name": "Forge 8B",
+    "context_window": 8000,
+    "input_per_1m": 0.10,
+    "output_per_1m": 0.30,
+    "batch_per_1m": 0.05,
+    "cached_input_per_1m": 0.03,
+    "volume_tiers": [],
+    "task_fit": {
+      "qa_chatbot": 55, "reasoning_analysis": 40, "summarization": 60,
+      "code_review": 38, "content_generation": 52, "code_generation": 42,
+      "data_extraction": 48, "translation": 65
+    }
+  }
+]

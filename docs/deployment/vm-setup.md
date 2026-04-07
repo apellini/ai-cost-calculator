@@ -1,0 +1,310 @@
+# AI Cost Calculator — VM Installation Guide
+
+Direct install on a fresh **Ubuntu 22.04+** IaaS VM. No Docker required.
+
+---
+
+## Prerequisites
+
+- Ubuntu 22.04 LTS (or 24.04)
+- 2+ vCPUs, 4 GB RAM minimum (8 GB recommended)
+- 20 GB disk
+- Ports 80/443 open (Nginx), 22 open (SSH)
+
+---
+
+## 1. System Packages
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y \
+  python3.12 python3.12-venv python3.12-dev \
+  nodejs npm \
+  postgresql-16 \
+  redis-server \
+  nginx certbot python3-certbot-nginx \
+  git build-essential libpq-dev \
+  libffi-dev libssl-dev
+```
+
+---
+
+## 2. PostgreSQL Setup
+
+```bash
+# Start PostgreSQL
+sudo systemctl enable --now postgresql
+
+# Create user and database
+sudo -u postgres psql <<'SQL'
+CREATE USER aicost WITH PASSWORD 'changeme';
+CREATE DATABASE aicost_db OWNER aicost;
+GRANT ALL PRIVILEGES ON DATABASE aicost_db TO aicost;
+SQL
+```
+
+> Change `changeme` to a strong password. Update `DATABASE_URL` in `.env` accordingly.
+
+---
+
+## 3. Redis Setup
+
+```bash
+sudo systemctl enable --now redis-server
+# Verify
+redis-cli ping  # should print PONG
+```
+
+---
+
+## 4. Application Directory
+
+```bash
+sudo mkdir -p /opt/ai-cost-calculator
+sudo chown $USER:$USER /opt/ai-cost-calculator
+
+# Clone or copy repository
+git clone <your-repo-url> /opt/ai-cost-calculator
+# or: scp -r . user@vm:/opt/ai-cost-calculator
+```
+
+---
+
+## 5. Backend Setup
+
+```bash
+cd /opt/ai-cost-calculator/backend
+
+# Create virtual environment
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -e ".[dev]"
+
+# Configure environment
+cp ../.env.example .env
+# Edit .env — set DATABASE_URL, SECRET_KEY, and other values
+nano .env
+
+# Run database migrations
+alembic upgrade head
+
+# Seed with fictional data
+python -m app.seed.seed_data --mode=fictional
+```
+
+---
+
+## 6. Frontend Build
+
+```bash
+cd /opt/ai-cost-calculator/frontend
+
+# Install Node dependencies
+npm install
+
+# Build for production
+npm run build
+# Output is in frontend/dist/
+```
+
+---
+
+## 7. systemd Service (Backend)
+
+```bash
+sudo nano /etc/systemd/system/aicost-backend.service
+```
+
+Paste:
+
+```ini
+[Unit]
+Description=AI Cost Calculator Backend
+After=network.target postgresql.service redis.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/ai-cost-calculator/backend
+Environment="PATH=/opt/ai-cost-calculator/backend/.venv/bin"
+EnvironmentFile=/opt/ai-cost-calculator/backend/.env
+ExecStart=/opt/ai-cost-calculator/backend/.venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 2 \
+    --log-level info
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Fix permissions so www-data can read the app
+sudo chown -R www-data:www-data /opt/ai-cost-calculator
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now aicost-backend
+
+# Check status
+sudo systemctl status aicost-backend
+sudo journalctl -u aicost-backend -f
+```
+
+---
+
+## 8. systemd Service (ARQ Worker — for background analyses)
+
+```bash
+sudo nano /etc/systemd/system/aicost-worker.service
+```
+
+Paste:
+
+```ini
+[Unit]
+Description=AI Cost Calculator Background Worker
+After=network.target redis.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/ai-cost-calculator/backend
+Environment="PATH=/opt/ai-cost-calculator/backend/.venv/bin"
+EnvironmentFile=/opt/ai-cost-calculator/backend/.env
+ExecStart=/opt/ai-cost-calculator/backend/.venv/bin/arq app.workers.analysis_worker.WorkerSettings
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now aicost-worker
+```
+
+---
+
+## 9. Nginx Configuration
+
+```bash
+sudo nano /etc/nginx/sites-available/aicost
+```
+
+Paste (replace `your.domain.com` with your actual domain or VM IP):
+
+```nginx
+server {
+    listen 80;
+    server_name your.domain.com;
+
+    # Frontend static files
+    root /opt/ai-cost-calculator/frontend/dist;
+    index index.html;
+
+    # SPA routing — serve index.html for all frontend routes
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API proxy
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+    }
+
+    # WebSocket proxy (for chat streaming)
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 3600s;
+    }
+}
+```
+
+```bash
+# Enable site
+sudo ln -sf /etc/nginx/sites-available/aicost /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+---
+
+## 10. SSL (Optional — for HTTPS)
+
+```bash
+# Requires a real domain pointed at this VM
+sudo certbot --nginx -d your.domain.com
+# Auto-renewal
+sudo systemctl enable --now certbot.timer
+```
+
+---
+
+## 11. Verify
+
+```bash
+# Backend health check
+curl http://localhost:8000/health
+# → {"status":"ok","version":"0.1.0"}
+
+# Frontend (via Nginx)
+curl http://your.domain.com
+# → HTML of the React app
+```
+
+---
+
+## Updating the Application
+
+```bash
+cd /opt/ai-cost-calculator
+git pull
+
+# Backend
+cd backend
+source .venv/bin/activate
+pip install -e .
+alembic upgrade head
+sudo systemctl restart aicost-backend aicost-worker
+
+# Frontend
+cd ../frontend
+npm install
+npm run build
+# Nginx serves the new build immediately
+```
+
+---
+
+## Environment Variables Reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `DATABASE_URL` | `postgresql+asyncpg://…` | PostgreSQL connection string |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
+| `SECRET_KEY` | *(required)* | JWT signing key — generate with `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `LLM_BACKEND` | `mock` | `mock` \| `ollama` \| `lmstudio` \| `openai_compat` |
+| `LLM_BASE_URL` | `http://localhost:11434` | Local LLM endpoint |
+| `LLM_MODEL` | `llama3.1:8b` | Model name |
+| `LLM_API_KEY` | *(empty)* | API key if required |
+| `REFRESH_INTERVAL` | `daily` | `daily` \| `weekly` \| `manual` |
+| `BATCH_THRESHOLD_SECONDS` | `120` | Analyses exceeding this go to background |
+| `DEBUG` | `false` | Enable SQLAlchemy query logging |

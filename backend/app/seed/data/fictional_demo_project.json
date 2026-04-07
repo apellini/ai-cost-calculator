@@ -1,0 +1,241 @@
+{
+  "name": "TaskFlow - AI-Powered Project Manager",
+  "description": "An intelligent project management platform that leverages AI to automate task creation, prioritization, and team collaboration.",
+  "budget_monthly": 5000,
+  "features": [
+    {
+      "name": "Natural Language Task Creation",
+      "description": "Users describe tasks in plain language; AI creates structured tasks with labels, estimates, and dependencies.",
+      "category": "qa_chatbot",
+      "priority": 1,
+      "sub_tasks": [
+        {
+          "name": "System prompt for task parsing",
+          "category": "qa_chatbot",
+          "system_prompt_tokens": 800,
+          "input_context_tokens": 500,
+          "output_tokens": 300,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Single-turn task extraction from natural language input"
+        },
+        {
+          "name": "Context-aware task enrichment",
+          "category": "reasoning_analysis",
+          "system_prompt_tokens": 1200,
+          "input_context_tokens": 2000,
+          "output_tokens": 1000,
+          "interaction_rounds": 2,
+          "worst_case_multiplier": 2.0,
+          "reasoning": "Needs project context to assign labels, estimate effort, and link dependencies. Multiple rounds for refinement."
+        },
+        {
+          "name": "Validation and error handling",
+          "category": "code_generation",
+          "system_prompt_tokens": 600,
+          "input_context_tokens": 1500,
+          "output_tokens": 2000,
+          "interaction_rounds": 3,
+          "worst_case_multiplier": 2.5,
+          "reasoning": "Generating validation logic with edge cases. High iteration count for bug fixing."
+        }
+      ]
+    },
+    {
+      "name": "Smart Task Prioritization",
+      "description": "AI analyzes task dependencies, deadlines, and team capacity to suggest optimal ordering.",
+      "category": "reasoning_analysis",
+      "priority": 2,
+      "sub_tasks": [
+        {
+          "name": "Dependency graph analysis",
+          "category": "reasoning_analysis",
+          "system_prompt_tokens": 1500,
+          "input_context_tokens": 5000,
+          "output_tokens": 2000,
+          "interaction_rounds": 2,
+          "worst_case_multiplier": 2.0,
+          "reasoning": "Complex graph traversal and conflict resolution requiring deep reasoning"
+        },
+        {
+          "name": "Priority scoring function",
+          "category": "reasoning_analysis",
+          "system_prompt_tokens": 800,
+          "input_context_tokens": 3000,
+          "output_tokens": 1500,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Weighted scoring across multiple factors"
+        }
+      ]
+    },
+    {
+      "name": "Meeting Summary Generator",
+      "description": "Transcribes and summarizes meetings, extracting action items and decisions.",
+      "category": "summarization",
+      "priority": 4,
+      "sub_tasks": [
+        {
+          "name": "Transcript chunking and summarization",
+          "category": "summarization",
+          "system_prompt_tokens": 600,
+          "input_context_tokens": 20000,
+          "output_tokens": 2000,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Long meeting transcripts require chunked processing. Async-friendly — ideal for batch API."
+        },
+        {
+          "name": "Action item extraction",
+          "category": "data_extraction",
+          "system_prompt_tokens": 500,
+          "input_context_tokens": 5000,
+          "output_tokens": 800,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.3,
+          "reasoning": "Structured extraction of tasks, owners, and deadlines from summary"
+        }
+      ]
+    },
+    {
+      "name": "Code Review Assistant",
+      "description": "Reviews PRs and suggests improvements, catching bugs and style issues.",
+      "category": "code_review",
+      "priority": 3,
+      "sub_tasks": [
+        {
+          "name": "Static analysis and pattern matching",
+          "category": "code_review",
+          "system_prompt_tokens": 2000,
+          "input_context_tokens": 8000,
+          "output_tokens": 3000,
+          "interaction_rounds": 2,
+          "worst_case_multiplier": 2.0,
+          "reasoning": "Large PR diffs with shared context across PRs — prompt caching yields 60% input savings"
+        },
+        {
+          "name": "Security vulnerability scan",
+          "category": "code_review",
+          "system_prompt_tokens": 1500,
+          "input_context_tokens": 8000,
+          "output_tokens": 1500,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Security-focused pass requiring high-capability model"
+        }
+      ]
+    },
+    {
+      "name": "Documentation Generator",
+      "description": "Generates API docs, README files, and inline comments from code.",
+      "category": "content_generation",
+      "priority": 5,
+      "sub_tasks": [
+        {
+          "name": "API endpoint documentation",
+          "category": "content_generation",
+          "system_prompt_tokens": 800,
+          "input_context_tokens": 5000,
+          "output_tokens": 4000,
+          "interaction_rounds": 2,
+          "worst_case_multiplier": 1.8,
+          "reasoning": "High output volume for comprehensive docs with examples"
+        },
+        {
+          "name": "README generation",
+          "category": "content_generation",
+          "system_prompt_tokens": 600,
+          "input_context_tokens": 3000,
+          "output_tokens": 3000,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Standard content generation with moderate context"
+        }
+      ]
+    },
+    {
+      "name": "Data Migration Scripts",
+      "description": "Generates ETL scripts from schema descriptions and migration specifications.",
+      "category": "code_generation",
+      "priority": 6,
+      "sub_tasks": [
+        {
+          "name": "Schema diff analysis",
+          "category": "reasoning_analysis",
+          "system_prompt_tokens": 1000,
+          "input_context_tokens": 6000,
+          "output_tokens": 2000,
+          "interaction_rounds": 2,
+          "worst_case_multiplier": 2.0,
+          "reasoning": "Complex schema comparison and migration path reasoning"
+        },
+        {
+          "name": "ETL script generation",
+          "category": "code_generation",
+          "system_prompt_tokens": 1200,
+          "input_context_tokens": 8000,
+          "output_tokens": 5000,
+          "interaction_rounds": 3,
+          "worst_case_multiplier": 2.5,
+          "reasoning": "High output volume, multiple iterations for correctness"
+        }
+      ]
+    },
+    {
+      "name": "Sentiment Analysis Dashboard",
+      "description": "Analyzes team communication sentiment across Slack, email, and comments.",
+      "category": "data_extraction",
+      "priority": 7,
+      "sub_tasks": [
+        {
+          "name": "Message classification pipeline",
+          "category": "data_extraction",
+          "system_prompt_tokens": 400,
+          "input_context_tokens": 2000,
+          "output_tokens": 200,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.2,
+          "reasoning": "High volume, low per-call cost — fast model preferred"
+        },
+        {
+          "name": "Trend aggregation and insights",
+          "category": "reasoning_analysis",
+          "system_prompt_tokens": 1000,
+          "input_context_tokens": 10000,
+          "output_tokens": 2000,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Periodic batch analysis of aggregated sentiment data"
+        }
+      ]
+    },
+    {
+      "name": "Multi-language Support",
+      "description": "Translates UI strings and content to 5 languages with context awareness.",
+      "category": "translation",
+      "priority": 8,
+      "sub_tasks": [
+        {
+          "name": "UI string batch translation",
+          "category": "translation",
+          "system_prompt_tokens": 300,
+          "input_context_tokens": 3000,
+          "output_tokens": 3500,
+          "interaction_rounds": 1,
+          "worst_case_multiplier": 1.3,
+          "reasoning": "5 target languages, batch processing — translation models excel here"
+        },
+        {
+          "name": "Context-aware content translation",
+          "category": "translation",
+          "system_prompt_tokens": 500,
+          "input_context_tokens": 5000,
+          "output_tokens": 6000,
+          "interaction_rounds": 2,
+          "worst_case_multiplier": 1.5,
+          "reasoning": "Richer context needed for dynamic content with domain terminology"
+        }
+      ]
+    }
+  ]
+}

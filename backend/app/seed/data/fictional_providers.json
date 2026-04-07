@@ -1,0 +1,7 @@
+[
+  { "name": "NovaMind AI", "website": "https://novamind.ai", "api_docs_url": "https://docs.novamind.ai" },
+  { "name": "Cortex Labs", "website": "https://cortexlabs.io", "api_docs_url": "https://docs.cortexlabs.io" },
+  { "name": "Zenith Systems", "website": "https://zenithsystems.ai", "api_docs_url": "https://docs.zenithsystems.ai" },
+  { "name": "Helios Research", "website": "https://heliosresearch.ai", "api_docs_url": "https://docs.heliosresearch.ai" },
+  { "name": "OpenForge", "website": "https://openforge.ai", "api_docs_url": "https://docs.openforge.ai" }
+]

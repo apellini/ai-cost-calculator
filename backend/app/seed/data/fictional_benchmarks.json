@@ -1,0 +1,14 @@
+[
+  { "slug": "nova-pro-7",       "mmlu": 89.2, "human_eval": 91.5, "math": 78.3, "reasoning": 85.0, "speed_tps": 45 },
+  { "slug": "nova-lite-3",      "mmlu": 72.1, "human_eval": 68.0, "math": 55.2, "reasoning": 62.0, "speed_tps": 180 },
+  { "slug": "nova-code-5",      "mmlu": 80.5, "human_eval": 95.2, "math": 70.1, "reasoning": 75.0, "speed_tps": 80 },
+  { "slug": "cortex-ultra",     "mmlu": 92.8, "human_eval": 88.0, "math": 85.7, "reasoning": 93.0, "speed_tps": 30 },
+  { "slug": "cortex-swift",     "mmlu": 75.0, "human_eval": 72.5, "math": 58.0, "reasoning": 65.0, "speed_tps": 200 },
+  { "slug": "cortex-reason-12", "mmlu": 85.3, "human_eval": 82.0, "math": 90.5, "reasoning": 91.0, "speed_tps": 50 },
+  { "slug": "zenith-max",       "mmlu": 91.0, "human_eval": 90.0, "math": 82.0, "reasoning": 88.0, "speed_tps": 35 },
+  { "slug": "zenith-flash",     "mmlu": 65.0, "human_eval": 55.0, "math": 45.0, "reasoning": 50.0, "speed_tps": 350 },
+  { "slug": "helios-omni",      "mmlu": 86.5, "human_eval": 85.0, "math": 75.0, "reasoning": 80.0, "speed_tps": 60 },
+  { "slug": "helios-mini",      "mmlu": 68.0, "human_eval": 60.0, "math": 48.0, "reasoning": 55.0, "speed_tps": 250 },
+  { "slug": "forge-72b",        "mmlu": 82.0, "human_eval": 80.0, "math": 68.0, "reasoning": 72.0, "speed_tps": 40 },
+  { "slug": "forge-8b",         "mmlu": 58.0, "human_eval": 45.0, "math": 35.0, "reasoning": 40.0, "speed_tps": 300 }
+]

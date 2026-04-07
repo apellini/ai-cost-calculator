@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.pyo
+
+# Environment
+.env
+*.env.local
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Alembic
+migrations/versions/__pycache__/
+
+# Logs
+*.log
+logs/
+
+# WeasyPrint / PDF exports
+exports/
+
+# PostgreSQL dumps
+*.sql
+*.dump
