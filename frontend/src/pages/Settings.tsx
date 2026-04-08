@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Plus, Trash2, RefreshCw, Shield, User, Eye, CheckCircle, Loader2 } from 'lucide-react'
+import { Save, Plus, Trash2, RefreshCw, Shield, User, Eye, CheckCircle, Loader2, KeyRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { api } from '@/lib/api'
+import { api, type UserOut } from '@/lib/api'
+import ChangePasswordModal from '@/components/ChangePasswordModal'
+import InviteUserModal from '@/components/InviteUserModal'
 
 const ROLE_CONFIG = {
   admin: { label: 'Admin', icon: Shield, variant: 'danger' as const },
@@ -38,6 +40,14 @@ export default function Settings() {
     queryKey: ['users'],
     queryFn: api.users.list,
     retry: false,
+  })
+
+  const [changePwTarget, setChangePwTarget] = useState<UserOut | null>(null)
+  const [inviteOpen, setInviteOpen] = useState(false)
+
+  const deleteMutation = useMutation({
+    mutationFn: api.users.delete,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   })
 
   const refreshMutation = useMutation({
@@ -170,7 +180,9 @@ export default function Settings() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-mono uppercase tracking-wider text-[#9099b0]">User Management</h2>
-          <Button variant="outline" size="sm"><Plus size={13} /> Invite User</Button>
+          <Button variant="outline" size="sm" onClick={() => setInviteOpen(true)}>
+            Invite User
+          </Button>
         </div>
         <Card>
           <table className="w-full text-sm">
@@ -178,41 +190,50 @@ export default function Settings() {
               <tr className="border-b border-black/7 bg-[#f8f9fb]">
                 <th className="text-left px-5 py-3 text-xs font-mono uppercase tracking-wider text-[#9099b0]">User</th>
                 <th className="text-left px-4 py-3 text-xs font-mono uppercase tracking-wider text-[#9099b0]">Role</th>
-                <th className="text-right px-4 py-3 text-xs font-mono uppercase tracking-wider text-[#9099b0]">Last Active</th>
                 <th className="text-right px-4 py-3 text-xs font-mono uppercase tracking-wider text-[#9099b0]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5">
-              {users.map(user => {
-                const roleConf = ROLE_CONFIG[user.role as keyof typeof ROLE_CONFIG] ?? ROLE_CONFIG.viewer
-                const RoleIcon = roleConf.icon
+              {users.map(u => {
+                const isAdmin = u.role === 'admin'
                 return (
-                  <tr key={user.id} className="hover:bg-[#f8f9fb] transition-colors">
+                  <tr key={u.id} className="hover:bg-[#f8f9fb] transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#4f7dff]/30 to-[#a855f7]/30 flex items-center justify-center text-[10px] font-bold text-[#4f7dff]">
-                          {user.email.slice(0, 2).toUpperCase()}
+                          {u.email.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-[#0f1117]">{user.email}</div>
-                          <div className="text-[10px] text-[#9099b0]">{user.role}</div>
+                          <div className="text-xs font-medium text-[#0f1117]">{u.name || u.email}</div>
+                          <div className="text-[10px] text-[#9099b0]">{u.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={roleConf.variant}>
-                        <RoleIcon size={9} /> {roleConf.label}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs text-[#6b7380]">
-                      {user.last_active_at ? formatRelative(user.last_active_at) : '—'}
+                      <span className="text-xs text-[#6b7380] capitalize">{u.role}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {user.role !== 'admin' && (
-                        <button className="text-[#9099b0] hover:text-red-500 transition-colors p-1">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          title="Change password"
+                          onClick={() => setChangePwTarget(u)}
+                          className="p-1.5 rounded text-[#9099b0] hover:text-[#4f7dff] hover:bg-[#4f7dff]/8 transition-colors"
+                        >
+                          <KeyRound size={13} />
+                        </button>
+                        <button
+                          title={isAdmin ? 'Admin users cannot be deleted' : 'Delete user'}
+                          disabled={isAdmin}
+                          onClick={() => !isAdmin && deleteMutation.mutate(u.id)}
+                          className={`p-1.5 rounded transition-colors ${
+                            isAdmin
+                              ? 'text-[#d1d5de] cursor-not-allowed'
+                              : 'text-[#9099b0] hover:text-red-500 hover:bg-red-50'
+                          }`}
+                        >
                           <Trash2 size={13} />
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 )
@@ -221,6 +242,23 @@ export default function Settings() {
           </table>
         </Card>
       </section>
+
+      {changePwTarget && (
+        <ChangePasswordModal
+          target={changePwTarget}
+          onClose={() => setChangePwTarget(null)}
+        />
+      )}
+
+      {inviteOpen && (
+        <InviteUserModal
+          onClose={() => setInviteOpen(false)}
+          onSuccess={() => {
+            qc.invalidateQueries({ queryKey: ['users'] })
+            setInviteOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }
