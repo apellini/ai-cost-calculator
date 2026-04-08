@@ -458,8 +458,8 @@ cd /opt/ai-cost-calculator/frontend && npm run build
 
 | Tables present in DB | Stamp at |
 |---|---|
-| Base tables only (no share_links, no notifications) | `0001` |
-| share_links present, notifications missing | `0002` |
+| Base tables only (no share_links, no notifications, no invite_tokens) | `0001` |
+| share_links present, notifications missing, no invite_tokens | `0002` |
 | share_links + notifications, no invite_tokens | `0003` |
 | All tables including invite_tokens | `0004` (already up to date) |
 
