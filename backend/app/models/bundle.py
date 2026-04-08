@@ -96,4 +96,4 @@ class ShareLink(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
 
-    project: Mapped["Project"] = relationship()  # type: ignore[name-defined]
+    project: Mapped["Project"] = relationship(overlaps="share_links")  # type: ignore[name-defined]
