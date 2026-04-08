@@ -1,6 +1,6 @@
 import secrets
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -85,7 +85,7 @@ async def invite_user(
     invite = InviteToken(
         user_id=user.id,
         token=token,
-        expires_at=datetime.utcnow() + timedelta(hours=24),
+        expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=24),
     )
     db.add(invite)
     await db.commit()

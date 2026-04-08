@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from pydantic import BaseModel, EmailStr, field_validator
 
 
@@ -62,7 +63,7 @@ class PasswordChangeSelf(BaseModel):
 class InviteCreate(BaseModel):
     email: EmailStr
     name: str
-    role: str = "analyst"
+    role: Literal["admin", "analyst", "viewer"] = "analyst"
     password: str | None = None  # auto-generated if None
 
 
