@@ -166,7 +166,7 @@ cp ../.env.example .env
 # Edit .env — set DATABASE_URL, SECRET_KEY, and other values
 nano .env
 
-# Run database migrations
+# Run database migrations (creates all tables from scratch)
 alembic upgrade head
 
 # Seed with fictional data
@@ -405,3 +405,65 @@ npm run build
 | `REFRESH_INTERVAL` | `daily` | `daily` \| `weekly` \| `manual` |
 | `BATCH_THRESHOLD_SECONDS` | `120` | Analyses exceeding this go to background |
 | `DEBUG` | `false` | Enable SQLAlchemy query logging |
+| `APP_BASE_URL` | `http://localhost:5173` | Public URL used to build invite links |
+| `SMTP_HOST` | *(empty)* | Leave empty to disable email sending |
+| `SMTP_PORT` | `587` | SMTP port |
+| `SMTP_USER` | *(empty)* | SMTP username |
+| `SMTP_PASSWORD` | *(empty)* | SMTP password |
+| `SMTP_FROM` | `noreply@example.com` | From address for invite emails |
+| `SMTP_TLS` | `true` | Use STARTTLS |
+
+---
+
+## 13. Upgrading an Existing Installation
+
+When pulling a new release on a server that was set up before migration `0001` was tracked in version control, Alembic's migration table may already contain records for revisions that no longer exist as files — or the schema exists but Alembic has never been told about it.
+
+### Case A — Fresh server (no tables yet)
+
+```bash
+cd /opt/ai-cost-calculator && git pull
+cd backend && source .venv/bin/activate
+alembic upgrade head
+```
+
+This runs `0001 → 0002 → 0003 → 0004` in order and creates all tables.
+
+### Case B — Existing server (tables exist, Alembic version is unknown)
+
+The original install may have used `Base.metadata.create_all()` directly instead of Alembic, leaving no migration history. In this case `alembic upgrade head` tries to run `0001` and fails because the tables already exist.
+
+**Fix — stamp the existing database at the revision that matches its current state, then upgrade:**
+
+```bash
+cd /opt/ai-cost-calculator && git pull
+cd backend && source .venv/bin/activate
+
+# Check what Alembic thinks the current revision is
+alembic current
+# If output is empty or shows an unknown revision, stamp it:
+
+# If the DB has share_links and notifications but NOT invite_tokens:
+alembic stamp 0003
+
+# Then apply only the new migration(s):
+alembic upgrade head
+# Expected: Running upgrade 0003 -> 0004
+
+sudo systemctl restart aicost-backend
+cd /opt/ai-cost-calculator/frontend && npm run build
+```
+
+**How to determine the right stamp revision:**
+
+| Tables present in DB | Stamp at |
+|---|---|
+| Base tables only (no share_links, no notifications) | `0001` |
+| share_links present, notifications missing | `0002` |
+| share_links + notifications, no invite_tokens | `0003` |
+| All tables including invite_tokens | `0004` (already up to date) |
+
+```bash
+# Quick check — run these in psql to see what's there:
+psql $DATABASE_URL -c "\dt" | grep -E "share_links|notifications|invite_tokens"
+```
