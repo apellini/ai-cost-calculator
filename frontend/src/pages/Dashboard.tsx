@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { api, type Project, type AnalysisOut } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 function ProjectCard({ project }: { project: Project }) {
   const navigate = useNavigate()
@@ -129,6 +130,8 @@ function ProjectCard({ project }: { project: Project }) {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+  const qc = useQueryClient()
 
   const { data: projects = [], isLoading, error } = useQuery<Project[]>({
     queryKey: ['projects'],
@@ -136,6 +139,16 @@ export default function Dashboard() {
   })
 
   const totalFeatures = projects.reduce((s, p) => s + p.feature_count, 0)
+
+  const orphanedCount = projects.filter(p => p.feature_count === 0).length
+
+  const cleanupMutation = useMutation({
+    mutationFn: api.projects.deleteOrphaned,
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['projects'] })
+      alert(`Removed ${data.deleted} orphaned project(s).`)
+    },
+  })
 
   return (
     <div className="p-6 max-w-5xl mx-auto animate-fade-in">
@@ -174,6 +187,25 @@ export default function Dashboard() {
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-xs font-mono uppercase tracking-wider text-[#9099b0]">Projects</h2>
       </div>
+
+      {currentUser?.role === 'admin' && orphanedCount > 0 && (
+        <div className="mb-4 flex items-center justify-between px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm">
+          <span className="text-amber-700">
+            <strong>{orphanedCount}</strong> project{orphanedCount > 1 ? 's have' : ' has'} no features and can be cleaned up.
+          </span>
+          <button
+            onClick={() => {
+              if (confirm(`Delete ${orphanedCount} orphaned project(s)? This cannot be undone.`)) {
+                cleanupMutation.mutate()
+              }
+            }}
+            disabled={cleanupMutation.isPending}
+            className="text-xs font-medium text-amber-700 hover:text-amber-900 underline ml-4"
+          >
+            {cleanupMutation.isPending ? 'Cleaning up…' : 'Clean up'}
+          </button>
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex items-center justify-center py-12 text-[#9099b0]">
