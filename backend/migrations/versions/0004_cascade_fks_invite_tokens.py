@@ -15,23 +15,42 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Fix notifications.project_id — add ON DELETE CASCADE
-    op.drop_constraint("notifications_project_id_fkey", "notifications", type_="foreignkey")
-    op.create_foreign_key(
-        "notifications_project_id_fkey",
-        "notifications", "projects",
-        ["project_id"], ["id"],
-        ondelete="CASCADE",
-    )
+    # Fix notifications.project_id — add ON DELETE CASCADE if not already set.
+    # Fresh installs (from 0003) already have CASCADE; this is a no-op for them.
+    op.execute(sa.text("""
+        DO $$
+        BEGIN
+            IF (
+                SELECT delete_rule
+                FROM information_schema.referential_constraints
+                WHERE constraint_name = 'notifications_project_id_fkey'
+            ) IS DISTINCT FROM 'CASCADE' THEN
+                ALTER TABLE notifications
+                    DROP CONSTRAINT IF EXISTS notifications_project_id_fkey;
+                ALTER TABLE notifications
+                    ADD CONSTRAINT notifications_project_id_fkey
+                    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+            END IF;
+        END $$
+    """))
 
-    # Fix share_links.project_id — add ON DELETE CASCADE
-    op.drop_constraint("share_links_project_id_fkey", "share_links", type_="foreignkey")
-    op.create_foreign_key(
-        "share_links_project_id_fkey",
-        "share_links", "projects",
-        ["project_id"], ["id"],
-        ondelete="CASCADE",
-    )
+    # Fix share_links.project_id — add ON DELETE CASCADE if not already set.
+    op.execute(sa.text("""
+        DO $$
+        BEGIN
+            IF (
+                SELECT delete_rule
+                FROM information_schema.referential_constraints
+                WHERE constraint_name = 'share_links_project_id_fkey'
+            ) IS DISTINCT FROM 'CASCADE' THEN
+                ALTER TABLE share_links
+                    DROP CONSTRAINT IF EXISTS share_links_project_id_fkey;
+                ALTER TABLE share_links
+                    ADD CONSTRAINT share_links_project_id_fkey
+                    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+            END IF;
+        END $$
+    """))
 
     # Create invite_tokens table
     op.create_table(
