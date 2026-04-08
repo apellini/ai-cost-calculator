@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 // Fall back to a simple random ID for plain-HTTP deployments.
 function uuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return uuid()
+    return crypto.randomUUID()
   }
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
 }
@@ -61,6 +61,7 @@ export function useChat({ projectId, onAnalysisReady }: UseChatOptions) {
 
     ws.onopen = () => setConnected(true)
     ws.onclose = () => setConnected(false)
+    ws.onerror = (err) => console.error('[chat ws] error', err)
 
     ws.onmessage = (evt) => {
       const event: ChatEvent = JSON.parse(evt.data)
