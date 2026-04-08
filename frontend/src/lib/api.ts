@@ -338,6 +338,11 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
       }),
+    updateRole: (userId: number, role: string) =>
+      request<UserOut>(`/api/users/${userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role }),
+      }),
     delete: (userId: number) =>
       request<void>(`/api/users/${userId}`, { method: 'DELETE' }),
   },
@@ -364,6 +369,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ token }),
       }),
+  },
+
+  // Settings (admin)
+  settings: {
+    smtpStatus: () => request<{ enabled: boolean }>('/api/settings/smtp-status'),
   },
 
   // Scenarios & comparison

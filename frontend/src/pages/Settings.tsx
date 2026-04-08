@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Trash2, RefreshCw, CheckCircle, Loader2, KeyRound } from 'lucide-react'
+import { Save, Trash2, RefreshCw, CheckCircle, Loader2, KeyRound, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -36,8 +36,25 @@ export default function Settings() {
     retry: false,
   })
 
+  const { data: smtpData } = useQuery({
+    queryKey: ['smtp-status'],
+    queryFn: api.settings.smtpStatus,
+    staleTime: 60_000,
+    retry: false,
+  })
+
   const [changePwTarget, setChangePwTarget] = useState<UserOut | null>(null)
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [editRoleId, setEditRoleId] = useState<number | null>(null)
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: number; role: string }) =>
+      api.users.updateRole(userId, role),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] })
+      setEditRoleId(null)
+    },
+  })
 
   const deleteMutation = useMutation({
     mutationFn: api.users.delete,
@@ -173,7 +190,19 @@ export default function Settings() {
       {/* User Management */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-[#9099b0]">User Management</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xs font-mono uppercase tracking-wider text-[#9099b0]">User Management</h2>
+            {smtpData !== undefined && (
+              <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full ${
+                smtpData.enabled
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-gray-50 text-[#9099b0] border border-black/10'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${smtpData.enabled ? 'bg-green-500' : 'bg-[#9099b0]'}`} />
+                {smtpData.enabled ? 'Email sending enabled' : 'Email sending disabled'}
+              </span>
+            )}
+          </div>
           <Button variant="outline" size="sm" onClick={() => setInviteOpen(true)}>
             Invite User
           </Button>
@@ -204,7 +233,21 @@ export default function Settings() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-[#6b7380] capitalize">{u.role}</span>
+                      {editRoleId === u.id ? (
+                        <select
+                          autoFocus
+                          defaultValue={u.role}
+                          onChange={e => updateRoleMutation.mutate({ userId: u.id, role: e.target.value })}
+                          onBlur={() => setEditRoleId(null)}
+                          className="text-xs border border-black/15 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#4f7dff]"
+                        >
+                          <option value="viewer">viewer</option>
+                          <option value="analyst">analyst</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      ) : (
+                        <span className="text-xs text-[#6b7380] capitalize">{u.role}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -216,7 +259,19 @@ export default function Settings() {
                           <KeyRound size={13} />
                         </button>
                         <button
-                          title={isAdmin ? 'Admin users cannot be deleted' : 'Delete user'}
+                          title={isAdmin ? 'Admin users cannot be modified' : 'Edit role'}
+                          disabled={isAdmin}
+                          onClick={() => !isAdmin && setEditRoleId(u.id)}
+                          className={`p-1.5 rounded transition-colors ${
+                            isAdmin
+                              ? 'text-[#d1d5de] cursor-not-allowed'
+                              : 'text-[#9099b0] hover:text-[#4f7dff] hover:bg-[#4f7dff]/8'
+                          }`}
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          title={isAdmin ? 'Admin users cannot be modified' : 'Delete user'}
                           disabled={isAdmin}
                           onClick={() => !isAdmin && deleteMutation.mutate(u.id)}
                           className={`p-1.5 rounded transition-colors ${
