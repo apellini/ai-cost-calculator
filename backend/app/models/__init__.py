@@ -4,6 +4,7 @@ from app.models.project import TaskCategory, Project, Feature, SubTask  # noqa: 
 from app.models.bundle import Bundle, BundleFeatureCost, Scenario, ShareLink, Snapshot  # noqa: F401
 from app.models.notification import Notification  # noqa: F401
 from app.models.user import User  # noqa: F401
+from app.models.invite_token import InviteToken  # noqa: F401
 
 __all__ = [
     "LLMProvider",
@@ -20,4 +21,5 @@ __all__ = [
     "ShareLink",
     "Notification",
     "User",
+    "InviteToken",
 ]

@@ -40,6 +40,14 @@ class Project(Base):
     owner: Mapped["User"] = relationship()  # type: ignore[name-defined]
     features: Mapped[list["Feature"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     scenarios: Mapped[list["Scenario"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    notifications: Mapped[list["Notification"]] = relationship(  # type: ignore[name-defined]
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    share_links: Mapped[list["ShareLink"]] = relationship(  # type: ignore[name-defined]
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class Feature(Base):
