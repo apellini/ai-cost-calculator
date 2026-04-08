@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel as PydanticModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.auth.dependencies import require_admin
 from app.database import get_db
 from app.models.project import Feature, Project, SubTask
+from app.models.user import User
 from app.schemas.project import (
     FeatureCreate, FeatureOut, FeatureUpdate,
     ProjectCreate, ProjectDetail, ProjectOut, ProjectUpdate,
@@ -61,6 +64,28 @@ async def create_project(body: ProjectCreate, db: AsyncSession = Depends(get_db)
     await db.commit()
     await db.refresh(project)
     return await _enrich_project(project, db)
+
+
+class OrphanedDeleteOut(PydanticModel):
+    deleted: int
+
+
+@router.delete("/orphaned", response_model=OrphanedDeleteOut)
+async def delete_orphaned_projects(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Delete all projects that have no features (abandoned mid-interview)."""
+    subq = select(Feature.project_id).distinct()
+    result = await db.execute(
+        select(Project).where(Project.id.not_in(subq))
+    )
+    orphaned = result.scalars().all()
+    count = len(orphaned)
+    for p in orphaned:
+        await db.delete(p)
+    await db.commit()
+    return OrphanedDeleteOut(deleted=count)
 
 
 @router.get("/{project_id}", response_model=ProjectDetail)
