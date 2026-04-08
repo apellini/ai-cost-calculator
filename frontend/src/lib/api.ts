@@ -183,6 +183,19 @@ export interface UserOut {
   last_active_at: string | null
 }
 
+export interface InviteCreate {
+  email: string
+  name: string
+  role: 'admin' | 'analyst' | 'viewer'
+  password?: string
+}
+
+export interface InviteResponse {
+  user: UserOut
+  invite_url: string
+  generated_password: string | null
+}
+
 export interface SnapshotOut {
   id: number
   scenario_id: number
@@ -250,6 +263,8 @@ export const api = {
       request<Project>(`/api/projects/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
     delete: (id: number) =>
       request<void>(`/api/projects/${id}`, { method: 'DELETE' }),
+    deleteOrphaned: () =>
+      request<{ deleted: number }>('/api/projects/orphaned', { method: 'DELETE' }),
   },
 
   // Features
@@ -311,6 +326,20 @@ export const api = {
   // Users (admin)
   users: {
     list: () => request<UserOut[]>('/api/users'),
+    invite: (body: InviteCreate) =>
+      request<InviteResponse>('/api/users/invite', { method: 'POST', body: JSON.stringify(body) }),
+    changePassword: (userId: number, newPassword: string) =>
+      request<void>(`/api/users/${userId}/password`, {
+        method: 'PUT',
+        body: JSON.stringify({ new_password: newPassword }),
+      }),
+    changeOwnPassword: (currentPassword: string, newPassword: string) =>
+      request<void>('/api/users/me/password', {
+        method: 'PUT',
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      }),
+    delete: (userId: number) =>
+      request<void>(`/api/users/${userId}`, { method: 'DELETE' }),
   },
 
   // Snapshots & pricing staleness
@@ -326,6 +355,15 @@ export const api = {
       request<TimelineOut>(
         `/api/projects/${projectId}/timeline${startDate ? `?start_date=${startDate}` : ''}`
       ),
+  },
+
+  // Auth utilities
+  authUtils: {
+    redeemInvite: (token: string) =>
+      request<{ email: string }>('/api/auth/redeem-invite', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      }),
   },
 
   // Scenarios & comparison
