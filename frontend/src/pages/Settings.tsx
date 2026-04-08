@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Trash2, RefreshCw, Shield, User, Eye, CheckCircle, Loader2, KeyRound } from 'lucide-react'
+import { Save, Trash2, RefreshCw, CheckCircle, Loader2, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,11 +8,6 @@ import { api, type UserOut } from '@/lib/api'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
 import InviteUserModal from '@/components/InviteUserModal'
 
-const ROLE_CONFIG = {
-  admin: { label: 'Admin', icon: Shield, variant: 'danger' as const },
-  analyst: { label: 'Analyst', icon: User, variant: 'balanced' as const },
-  viewer: { label: 'Viewer', icon: Eye, variant: 'muted' as const },
-}
 
 function formatRelative(iso: string | null): string {
   if (!iso) return 'never'
