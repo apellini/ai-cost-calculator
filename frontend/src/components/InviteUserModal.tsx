@@ -21,7 +21,7 @@ export default function InviteUserModal({ onClose, onSuccess }: Props) {
 
   const mutation = useMutation({
     mutationFn: () => api.users.invite({ name, email, role, password: password || undefined }),
-    onSuccess: (data) => { setResult(data); onSuccess() },
+    onSuccess: (data) => { setResult(data) },
   })
 
   const copyLink = async () => {
@@ -88,7 +88,7 @@ export default function InviteUserModal({ onClose, onSuccess }: Props) {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button variant="outline" size="sm" onClick={onClose}>Done</Button>
+              <Button variant="outline" size="sm" onClick={() => { onSuccess(); onClose() }}>Done</Button>
             </div>
           </div>
         ) : (
