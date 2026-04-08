@@ -80,6 +80,7 @@ async def chat_ws(project_id: int, websocket: WebSocket):
 
     except WebSocketDisconnect:
         logger.debug("WebSocket disconnected: project=%d", project_id)
+        _sessions.pop(project_id, None)
     except Exception as exc:
         logger.exception("WebSocket error: project=%d error=%s", project_id, exc)
         try:

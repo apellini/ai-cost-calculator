@@ -11,6 +11,7 @@ export default function NewProject() {
   const [tab, setTab] = useState<'chat' | 'spec'>('chat')
   const [projectName, setProjectName] = useState('')
   const [budget, setBudget] = useState('')
+  const [createError, setCreateError] = useState<string | null>(null)
   const navigate = useNavigate()
   const qc = useQueryClient()
 
@@ -22,6 +23,9 @@ export default function NewProject() {
     onSuccess: (project) => {
       qc.invalidateQueries({ queryKey: ['projects'] })
       navigate(`/chat?project=${project.id}`)
+    },
+    onError: (err: Error) => {
+      setCreateError(err.message ?? 'Failed to create project. Please try again.')
     },
   })
 
@@ -80,11 +84,14 @@ export default function NewProject() {
                 Hi! I'll ask you a few questions to understand what you're building, then generate a detailed cost breakdown. Ready to start?
               </div>
             </div>
+            {createError && (
+              <p className="text-xs text-red-600 mb-3">{createError}</p>
+            )}
             <div className="flex items-center justify-between pt-3 border-t border-black/8">
               <p className="text-xs text-[#9099b0]">The AI will guide you through 5–8 questions</p>
               <Button
                 variant="primary"
-                onClick={() => createProject.mutate()}
+                onClick={() => { setCreateError(null); createProject.mutate() }}
                 disabled={createProject.isPending}
               >
                 {createProject.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
@@ -113,10 +120,13 @@ export default function NewProject() {
               rows={8}
               className="font-mono text-xs"
             />
+            {createError && (
+              <p className="text-xs text-red-600 mt-3">{createError}</p>
+            )}
             <div className="flex justify-end mt-4">
               <Button
                 variant="primary"
-                onClick={() => createProject.mutate()}
+                onClick={() => { setCreateError(null); createProject.mutate() }}
                 disabled={createProject.isPending}
               >
                 {createProject.isPending ? <Loader2 size={14} className="animate-spin" /> : null}

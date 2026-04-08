@@ -28,9 +28,6 @@ _MOCK_FEATURES_JSON = json.dumps({
     ]
 })
 
-_CHAT_INDEX = 0
-
-
 class MockAdapter(LLMAdapter):
     """
     Returns pre-scripted responses for development and demos.
@@ -48,9 +45,10 @@ class MockAdapter(LLMAdapter):
         if not stream and messages and "Return ONLY valid JSON" in messages[0].content:
             return _MOCK_FEATURES_JSON
 
-        global _CHAT_INDEX
-        response = _CHAT_SCRIPT[_CHAT_INDEX % len(_CHAT_SCRIPT)]
-        _CHAT_INDEX += 1
+        # Derive turn index from the number of assistant messages already in history.
+        # This makes the mock stateless per-call and correct for any project.
+        assistant_turns = sum(1 for m in messages if m.role == "assistant")
+        response = _CHAT_SCRIPT[assistant_turns % len(_CHAT_SCRIPT)]
 
         if stream:
             return self._stream_text(response)
