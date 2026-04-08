@@ -299,7 +299,7 @@ Paste (replace `your.domain.com` with your actual domain or VM IP):
 ```nginx
 server {
     listen 80;
-    server_name your.domain.com;
+    server_name aicost.neope.dynamic-dns.net;
 
     # Frontend static files
     root /opt/ai-cost-calculator/frontend/dist;
@@ -344,13 +344,115 @@ sudo systemctl reload nginx
 
 ---
 
-## 11. SSL (Optional — for HTTPS)
+## 11. SSL — HTTPS with Let's Encrypt
+
+### Step 1 — Obtain certificate
 
 ```bash
-# Requires a real domain pointed at this VM
-sudo certbot --nginx -d your.domain.com
-# Auto-renewal
+# certbot with the nginx plugin rewrites your config automatically
+sudo certbot --nginx -d aicost.neope.dynamic-dns.net
+
+# When prompted:
+#   Enter email → your-email@example.com
+#   Agree to TOS → A
+#   Redirect HTTP to HTTPS? → 2 (recommended)
+```
+
+Certbot edits `/etc/nginx/sites-available/aicost` in place, adding the `ssl_certificate` / `ssl_certificate_key` directives and a redirect block. The result looks like:
+
+```nginx
+# HTTP → HTTPS redirect (added by certbot)
+server {
+    listen 80;
+    server_name aicost.neope.dynamic-dns.net;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS
+server {
+    listen 443 ssl;
+    server_name aicost.neope.dynamic-dns.net;
+
+    ssl_certificate     /etc/letsencrypt/live/aicost.neope.dynamic-dns.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/aicost.neope.dynamic-dns.net/privkey.pem;
+    include             /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+
+    root  /opt/ai-cost-calculator/frontend/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+    }
+
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 3600s;
+    }
+}
+```
+
+### Step 2 — Enable auto-renewal
+
+```bash
+# certbot timer is installed by the snap/apt package; verify it's active
 sudo systemctl enable --now certbot.timer
+sudo systemctl status certbot.timer
+
+# Test renewal dry-run
+sudo certbot renew --dry-run
+# Expected: "Congratulations, all simulated renewals succeeded"
+```
+
+### Step 3 — Update the frontend API URL
+
+The frontend must use the HTTPS origin so browsers don't block mixed content:
+
+```bash
+cd /opt/ai-cost-calculator/frontend
+echo "VITE_API_URL=" > .env   # empty = same origin (correct when served by Nginx)
+npm run build
+```
+
+Also update the backend's invite-link base URL in `/opt/ai-cost-calculator/backend/.env`:
+
+```
+APP_BASE_URL=https://aicost.neope.dynamic-dns.net
+```
+
+Then restart the backend:
+
+```bash
+sudo systemctl restart aicost-backend
+```
+
+### Step 4 — Verify
+
+```bash
+# HTTPS health check
+curl https://aicost.neope.dynamic-dns.net/api/health
+# → {"status":"ok","version":"0.1.0"}
+
+# HTTP redirects to HTTPS
+curl -I http://aicost.neope.dynamic-dns.net
+# → HTTP/1.1 301 Moved Permanently
+#   Location: https://aicost.neope.dynamic-dns.net/
 ```
 
 ---
@@ -363,7 +465,7 @@ curl http://localhost:8000/health
 # → {"status":"ok","version":"0.1.0"}
 
 # Frontend (via Nginx)
-curl http://your.domain.com
+curl https://aicost.neope.dynamic-dns.net
 # → HTML of the React app
 ```
 
