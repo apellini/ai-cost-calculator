@@ -36,6 +36,17 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:4173"]
 
+    # Invite links base URL (used to build /login?token=... links)
+    app_base_url: str = "http://localhost:5173"
+
+    # SMTP (optional — leave smtp_host empty to disable email sending)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "noreply@example.com"
+    smtp_tls: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:
