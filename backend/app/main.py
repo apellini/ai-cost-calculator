@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import engine
-from app.routers import analysis, auth, chat, exports, models, notifications, projects, scenarios, snapshots, task_categories, timeline, users
+from app.routers import analysis, auth, chat, exports, models, notifications, projects, scenarios, settings as settings_router, sharing, snapshots, task_categories, timeline, users
 from app.routers import settings as settings_router
 from app.scheduler import init_scheduler, shutdown_scheduler
 
@@ -52,6 +52,7 @@ app.include_router(exports.router)
 app.include_router(notifications.router)
 app.include_router(chat.router)
 app.include_router(settings_router.router)
+app.include_router(sharing.router)
 
 
 @app.get("/health")

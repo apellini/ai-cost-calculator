@@ -85,11 +85,15 @@ class ShareLink(Base):
     """
     A read-only shareable link for a project's analysis.
     Anyone with the token can view analysis results without logging in.
+    Can be shared with specific users or as public links.
     """
     __tablename__ = "share_links"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    shared_with_user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
     token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     label: Mapped[Optional[str]] = mapped_column(String(200))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -97,3 +101,7 @@ class ShareLink(Base):
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
 
     project: Mapped["Project"] = relationship(overlaps="share_links")  # type: ignore[name-defined]
+    shared_with_user: Mapped[Optional["User"]] = relationship(
+        foreign_keys=[shared_with_user_id],
+        lazy="joined"
+    )  # type: ignore[name-defined]

@@ -196,6 +196,30 @@ export interface InviteResponse {
   generated_password: string | null
 }
 
+export interface ShareLinkInfo {
+  user_id: number
+  email: string
+  link: string
+  expires_at: string | null
+}
+
+export interface ShareWithUsersResponse {
+  project_id: number
+  links: ShareLinkInfo[]
+}
+
+export interface ShareLinkOut {
+  id: number
+  project_id: number
+  shared_with_user_id: number | null
+  shared_with_user_email: string | null
+  token: string
+  label: string | null
+  is_active: boolean
+  created_at: string
+  expires_at: string | null
+}
+
 export interface SnapshotOut {
   id: number
   scenario_id: number
@@ -321,6 +345,21 @@ export const api = {
         `/api/projects/${projectId}/share`,
         { method: 'POST' }
       ),
+  },
+
+  // Sharing - direct user selection
+  sharing: {
+    withUsers: (projectId: number, userIds: number[]) =>
+      request<ShareWithUsersResponse>(`/api/projects/${projectId}/share/users`, {
+        method: 'POST',
+        body: JSON.stringify({ user_ids: userIds }),
+      }),
+    list: (projectId: number) =>
+      request<ShareLinkOut[]>(`/api/projects/${projectId}/share/links`),
+    revoke: (projectId: number, linkId: number) =>
+      request<void>(`/api/projects/${projectId}/share/links/${linkId}`, {
+        method: 'DELETE',
+      }),
   },
 
   // Users (admin)

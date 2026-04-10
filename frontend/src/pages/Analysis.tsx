@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, ChevronRight, Loader2, Sparkles, TrendingDown, AlertCircle } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Loader2, Sparkles, TrendingDown, AlertCircle, Share2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { api, type AnalysisOut, type BundleOut, type ProjectDetail } from '@/lib/api'
 import { formatCurrency, formatTokens } from '@/lib/utils'
 import ExportMenu from '@/components/ExportMenu'
+import ShareProjectModal from '@/components/ShareProjectModal'
 import StalenessIndicator from '@/components/StalenessIndicator'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -29,6 +30,7 @@ export default function Analysis() {
 
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const [selectedTier, setSelectedTier] = useState<'economy' | 'balanced' | 'premium'>('balanced')
+  const [showShareModal, setShowShareModal] = useState(false)
 
   const toggle = (id: number) => setExpanded(prev => {
     const next = new Set(prev)
@@ -96,6 +98,12 @@ export default function Analysis() {
           {analysis && project && (
             <ExportMenu projectId={projectId} projectName={project.name} />
           )}
+          <Button
+            variant="outline" size="sm"
+            onClick={() => setShowShareModal(true)}
+          >
+            <Share2 size={13} /> Share
+          </Button>
           <Button
             variant="primary" size="sm"
             onClick={() => runAnalysis.mutate()}
@@ -362,6 +370,11 @@ export default function Analysis() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Share modal */}
+      {showShareModal && (
+        <ShareProjectModal projectId={projectId} onClose={() => setShowShareModal(false)} />
       )}
     </div>
   )
