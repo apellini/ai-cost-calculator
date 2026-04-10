@@ -22,15 +22,3 @@
 
 # USER
 - Project could be reserved, User has to choice users to share the project
-- Invite user button doesn't work
-
-# FIX
-- Remove all orphaned project
-- Delete a project goes in error:
-Apr 07 22:19:54 iac-cost-001 uvicorn[1141]: sqlalchemy.exc.IntegrityError: (sqlalchemy.dialects.postgresql.asyncpg.IntegrityError) <class 'asyncpg.exceptions.ForeignKeyViolationError'>: update or delete on table "projects" violates foreign key constraint "notifications_project_id_fkey" on table "notifications"
-Apr 07 22:19:54 iac-cost-001 uvicorn[1141]: DETAIL:  Key (id)=(9) is still referenced from table "notifications".
-Apr 07 22:19:54 iac-cost-001 uvicorn[1141]: [SQL: DELETE FROM projects WHERE projects.id = $1::INTEGER]
-Apr 07 22:19:54 iac-cost-001 uvicorn[1141]: [parameters: (9,)]
-Apr 07 22:19:54 iac-cost-001 uvicorn[1141]: (Background on this error at: https://sqlalche.me/e/20/gkpj)
-
-- ACTIONS on settings menu for user doesn't have any icon, change password, delete (only admin could not be deleted)
