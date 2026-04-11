@@ -115,7 +115,7 @@ async def _enrich_project_with_bundles(project: Project, db: AsyncSession) -> Pr
 
 # ── projects ──────────────────────────────────────────────────────────────────
 
-@router.get("", response_model=list[ProjectOut])
+@router.get("", response_model=list[ProjectOut | ProjectWithDetails])
 async def list_projects(
     include_details: bool = False,
     db: AsyncSession = Depends(get_db),
