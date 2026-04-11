@@ -257,6 +257,45 @@ export interface SyncReport {
 // Keep RefreshOut as an alias for backwards compatibility
 export type RefreshOut = SyncReport
 
+// ── Pricing Sources ───────────────────────────────────────────────────────────
+
+export interface PricingSource {
+  id: number
+  name: string
+  description: string | null
+  provider_type: 'openrouter' | 'litellm' | 'openai' | 'anthropic' | 'google' | 'custom'
+  api_url: string | null
+  is_active: boolean
+  default_refresh_interval: 'immediate' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'manual'
+  last_sync_at: string | null
+  last_sync_status: 'success' | 'error' | null
+  last_sync_error: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PricingSourceCreate {
+  name: string
+  description?: string | null
+  provider_type: 'openrouter' | 'litellm' | 'openai' | 'anthropic' | 'google' | 'custom'
+  api_url?: string | null
+  api_key_encrypted?: string | null
+  api_key_iv?: string | null
+  is_active?: boolean
+  default_refresh_interval: 'immediate' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'manual'
+}
+
+export interface ModelPricingSource {
+  id: number
+  model_id: number
+  pricing_source_id: number
+  refresh_interval: string | null
+  priority: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface FeatureTimelineOut {
   feature_id: number
   feature_name: string
@@ -430,6 +469,18 @@ export const api = {
   // Settings (admin)
   settings: {
     smtpStatus: () => request<{ enabled: boolean }>('/api/settings/smtp-status'),
+  },
+
+  // Pricing Sources (admin)
+  pricingSources: {
+    list: () => request<PricingSource[]>('/api/pricing-sources'),
+    get: (id: number) => request<PricingSource>(`/api/pricing-sources/${id}`),
+    create: (body: PricingSourceCreate) =>
+      request<PricingSource>('/api/pricing-sources', { method: 'POST', body: JSON.stringify(body) }),
+    update: (id: number, body: Partial<PricingSourceCreate>) =>
+      request<PricingSource>(`/api/pricing-sources/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+    delete: (id: number) =>
+      request<void>(`/api/pricing-sources/${id}`, { method: 'DELETE' }),
   },
 
   // Scenarios & comparison

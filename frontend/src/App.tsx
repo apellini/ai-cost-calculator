@@ -11,6 +11,7 @@ import Comparison from './pages/Comparison'
 import Timeline from './pages/Timeline'
 import ModelCatalog from './pages/ModelCatalog'
 import Settings from './pages/Settings'
+import PricingSources from './pages/PricingSources'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
               {/* Settings restricted to admin */}
               <Route element={<ProtectedRoute roles={['admin']} />}>
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/pricing-sources" element={<PricingSources />} />
               </Route>
             </Route>
           </Route>

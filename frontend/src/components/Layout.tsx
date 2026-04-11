@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   LayoutDashboard, Plus, MessageSquare, BarChart3, GitCompare,
-  Clock, Database, Settings, ChevronRight, Zap, LogOut
+  Clock, Database, Settings, ChevronRight, Zap, LogOut, DollarSign
 } from 'lucide-react'
 import NotificationBell from '@/components/NotificationBell'
 
@@ -16,6 +16,7 @@ const NAV = [
   { to: '/timeline', icon: Clock, label: 'Timeline' },
   { to: '/models', icon: Database, label: 'Model Catalog' },
   { to: '/settings', icon: Settings, label: 'Settings', adminOnly: true },
+  { to: '/pricing-sources', icon: DollarSign, label: 'Pricing Sources', adminOnly: true },
 ]
 
 export function Layout() {
