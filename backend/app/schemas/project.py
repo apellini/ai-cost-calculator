@@ -95,6 +95,22 @@ class ProjectDetail(ProjectOut):
     features: list[FeatureOut] = []
 
 
+class BundleInfo(BaseModel):
+    """Minimal bundle info for project listing."""
+    model_config = ConfigDict(from_attributes=True)
+
+    tier: str
+    total_cost: float
+
+
+class ProjectWithDetails(ProjectOut):
+    """Project with full analysis data for switching."""
+    model_config = ConfigDict(from_attributes=True)
+
+    access_type: str
+    bundles: list[BundleInfo] = []
+
+
 # ── TaskCategory ──────────────────────────────────────────────────────────────
 
 class TaskCategoryOut(BaseModel):
