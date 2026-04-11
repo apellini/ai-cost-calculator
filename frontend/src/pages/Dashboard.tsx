@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, BarChart3, Clock, TrendingDown, Calendar, ChevronRight, Sparkles, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { api, type Project, type AnalysisOut } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import SwitchProjectModal from '@/components/SwitchProjectModal'
 
 function ProjectCard({ project }: { project: Project }) {
   const navigate = useNavigate()
@@ -130,13 +131,43 @@ function ProjectCard({ project }: { project: Project }) {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user: currentUser } = useAuth()
   const qc = useQueryClient()
+
+  // Active project state
+  const [showSwitchModal, setShowSwitchModal] = useState(false)
+
+  // Get active project from query params or localStorage
+  const queryProjectId = searchParams.get('project')
+  const storedProjectId = localStorage.getItem('activeProjectId')
+
+  // Use query param if present, otherwise use localStorage
+  const activeProjectId = queryProjectId
+    ? parseInt(queryProjectId, 10)
+    : (storedProjectId ? parseInt(storedProjectId, 10) : null)
+
+  // Handle project switch
+  const handleSwitchProject = (projectId: number) => {
+    localStorage.setItem('activeProjectId', String(projectId))
+    setSearchParams({ project: String(projectId) })
+  }
+
+  // Clear active project (for "Show All" behavior)
+  const handleClearActiveProject = () => {
+    localStorage.removeItem('activeProjectId')
+    setSearchParams({})
+  }
 
   const { data: projects = [], isLoading, error } = useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: api.projects.list,
   })
+
+  // Filter projects based on active project selection
+  const displayedProjects = activeProjectId
+    ? projects.filter(p => p.id === activeProjectId)
+    : projects
 
   const totalFeatures = projects.reduce((s, p) => s + p.feature_count, 0)
 
@@ -156,16 +187,44 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-display font-700 text-[#0f1117]">Dashboard</h1>
           <p className="text-sm text-[#6b7380] mt-0.5">Your AI projects and cost analyses</p>
+          {activeProjectId && (
+            <button
+              onClick={handleClearActiveProject}
+              className="text-xs text-[#4f7dff] hover:underline mt-1 inline-block"
+            >
+              Clear selection
+            </button>
+          )}
         </div>
-        <Button variant="primary" size="md" onClick={() => navigate('/new-project')}>
-          <Plus size={15} /> New Project
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => setShowSwitchModal(true)}
+            disabled={projects.length === 0}
+          >
+            Switch Project
+          </Button>
+          <Button variant="primary" size="md" onClick={() => navigate('/new-project')}>
+            <Plus size={15} /> New Project
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6 animate-stagger">
         {[
-          { label: 'Active Projects', value: String(projects.length), sub: projects.length === 1 ? projects[0]?.name ?? '' : `${projects.length} projects`, icon: BarChart3, color: '#4f7dff' },
+          {
+            label: 'Active Projects',
+            value: String(activeProjectId ? 1 : projects.length),
+            sub: activeProjectId
+              ? projects.find(p => p.id === activeProjectId)?.name ?? 'Selected project'
+              : projects.length === 1
+                ? projects[0]?.name ?? ''
+                : `${projects.length} projects`,
+            icon: BarChart3,
+            color: '#4f7dff'
+          },
           { label: 'Features Analyzed', value: String(totalFeatures), sub: 'Across all projects', icon: Sparkles, color: '#9333ea' },
           { label: 'Models Available', value: '12', sub: 'Across 5 providers', icon: TrendingDown, color: '#16a34a' },
         ].map((stat) => (
@@ -219,7 +278,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {!isLoading && projects.map(p => <ProjectCard key={p.id} project={p} />)}
+      {!isLoading && displayedProjects.map(p => <ProjectCard key={p.id} project={p} />)}
 
       {/* Empty state / new project */}
       <div
@@ -238,6 +297,14 @@ export default function Dashboard() {
         <span>Prices last updated <span className="text-[#6b7380]">3 days ago</span></span>
         <button className="text-[#4f7dff] hover:underline ml-1">Refresh now</button>
       </div>
+
+      {showSwitchModal && (
+        <SwitchProjectModal
+          onSwitch={handleSwitchProject}
+          onClose={() => setShowSwitchModal(false)}
+          currentProjectId={activeProjectId}
+        />
+      )}
     </div>
   )
 }
