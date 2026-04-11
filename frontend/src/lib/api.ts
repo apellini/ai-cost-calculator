@@ -91,6 +91,16 @@ export interface Project {
   feature_count: number
 }
 
+export interface BundleInfo {
+  tier: string
+  total_cost: number
+}
+
+export interface ProjectWithDetails extends Project {
+  access_type: 'owner' | 'shared'
+  bundles: BundleInfo[]
+}
+
 export interface ProjectDetail extends Project {
   features: Feature[]
 }
@@ -280,6 +290,7 @@ export const api = {
   // Projects
   projects: {
     list: () => request<Project[]>('/api/projects'),
+    listWithDetails: () => request<ProjectWithDetails[]>('/api/my-projects'),
     get: (id: number) => request<ProjectDetail>(`/api/projects/${id}`),
     create: (body: ProjectCreate) =>
       request<Project>('/api/projects', { method: 'POST', body: JSON.stringify(body) }),
