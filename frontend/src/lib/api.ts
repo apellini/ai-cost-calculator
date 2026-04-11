@@ -246,10 +246,16 @@ export interface StalenessOut {
   model_count: number
 }
 
-export interface RefreshOut {
+export interface SyncReport {
+  status: string
   models_updated: number
+  changes_detected: number
+  new_models_added: number
   message: string
 }
+
+// Keep RefreshOut as an alias for backwards compatibility
+export type RefreshOut = SyncReport
 
 export interface FeatureTimelineOut {
   feature_id: number

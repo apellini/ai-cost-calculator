@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Trash2, RefreshCw, CheckCircle, Loader2, KeyRound, Pencil } from 'lucide-react'
+import { Save, Trash2, RefreshCw, CheckCircle, Loader2, KeyRound, Pencil, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,6 +22,7 @@ export default function Settings() {
   const [llmBackend, setLlmBackend] = useState<'ollama' | 'lmstudio' | 'openai_compat' | 'mock'>('mock')
   const [refreshInterval, setRefreshInterval] = useState<'daily' | 'weekly' | 'manual'>('daily')
   const [refreshDone, setRefreshDone] = useState(false)
+  const [refreshReport, setRefreshReport] = useState<{ status: string; message: string } | null>(null)
 
   const { data: staleness } = useQuery({
     queryKey: ['staleness'],
@@ -63,11 +64,15 @@ export default function Settings() {
 
   const refreshMutation = useMutation({
     mutationFn: api.snapshots.refresh,
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['staleness'] })
       qc.invalidateQueries({ queryKey: ['models'] })
       setRefreshDone(true)
-      setTimeout(() => setRefreshDone(false), 3000)
+      setRefreshReport({ status: data.status, message: data.message })
+      setTimeout(() => {
+        setRefreshDone(false)
+        setRefreshReport(null)
+      }, 5000)
     },
   })
 
@@ -182,6 +187,21 @@ export default function Settings() {
                     : <><RefreshCw size={13} /> Refresh Now</>
                 }
               </Button>
+            </div>
+            {refreshReport && (
+              <div className={`flex items-start gap-2 text-xs p-3 rounded-lg border ${
+                refreshReport.status === 'error'
+                  ? 'bg-red-50 border-red-200 text-red-700'
+                  : 'bg-green-50 border-green-200 text-green-700'
+              }`}>
+                {refreshReport.status === 'error' ? (
+                  <AlertCircle size={14} className="mt-0.5 flex-none" />
+                ) : (
+                  <CheckCircle size={14} className="mt-0.5 flex-none" />
+                )}
+                <span>{refreshReport.message}</span>
+              </div>
+            )}
             </div>
           </CardContent>
         </Card>
