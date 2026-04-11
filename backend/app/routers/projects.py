@@ -4,13 +4,16 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth.dependencies import require_admin
+from app.auth.dependencies import require_admin, get_current_user
 from app.database import get_db
 from app.models.project import Feature, Project, SubTask
 from app.models.user import User
+from app.models.bundle import Bundle, Scenario
+from app.models.project import ShareLink
 from app.schemas.project import (
     FeatureCreate, FeatureOut, FeatureUpdate,
     ProjectCreate, ProjectDetail, ProjectOut, ProjectUpdate,
+    ProjectWithDetails, BundleInfo,
 )
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -46,15 +49,126 @@ async def _enrich_project(project: Project, db: AsyncSession) -> ProjectOut:
     return out
 
 
+async def _check_project_access(project: Project, current_user: User, db: AsyncSession) -> tuple[bool, str]:
+    """
+    Check if user has access to project.
+    Returns (has_access, access_type) where access_type is "owner" or "shared".
+    """
+    # Admins have access to all projects
+    if current_user.role == 'admin':
+        return True, 'owner'  # treat as owner for simplicity
+
+    # Check if user owns the project
+    if project.owner_id == current_user.id:
+        return True, 'owner'
+
+    # Check if project is shared with user via share link
+    share_link = await db.scalar(
+        select(ShareLink)
+        .where(
+            ShareLink.project_id == project.id,
+            ShareLink.shared_with_user_id == current_user.id,
+            ShareLink.is_active.is_(True)
+        )
+    )
+
+    if share_link:
+        return True, 'shared'
+
+    return False, ''
+
+
+async def _enrich_project_with_bundles(project: Project, db: AsyncSession) -> ProjectWithDetails:
+    """Enrich project with feature count and bundle data."""
+    # Get feature count
+    count = await db.scalar(
+        select(func.count()).where(Feature.project_id == project.id)
+    )
+
+    # Get bundles from scenarios
+    result = await db.execute(
+        select(Bundle)
+        .join(Scenario)
+        .where(Scenario.project_id == project.id)
+        .order_by(Bundle.tier)
+    )
+    bundles = result.scalars().all()
+
+    bundle_infos = [
+        BundleInfo(tier=b.tier, total_cost=float(b.total_cost))
+        for b in bundles
+    ]
+
+    return ProjectWithDetails(
+        id=project.id,
+        name=project.name,
+        description=project.description,
+        budget_monthly=float(project.budget_monthly) if project.budget_monthly else None,
+        status=project.status,
+        created_at=project.created_at,
+        updated_at=project.updated_at,
+        feature_count=count or 0,
+        access_type='',  # Will be set by caller
+        bundles=bundle_infos
+    )
+
+
 # ── projects ──────────────────────────────────────────────────────────────────
 
 @router.get("", response_model=list[ProjectOut])
-async def list_projects(db: AsyncSession = Depends(get_db)):
+async def list_projects(
+    include_details: bool = False,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List projects with optional detailed view."""
+    # Get all projects
     result = await db.execute(
         select(Project).order_by(Project.updated_at.desc())
     )
-    projects = result.scalars().all()
-    return [await _enrich_project(p, db) for p in projects]
+    all_projects = result.scalars().all()
+
+    # Filter based on user access
+    if current_user.role != 'admin':
+        filtered = []
+        for project in all_projects:
+            has_access, _ = await _check_project_access(project, current_user, db)
+            if has_access:
+                filtered.append(project)
+        all_projects = filtered
+
+    if include_details:
+        return [await _enrich_project_with_bundles(p, db) for p in all_projects]
+
+    return [await _enrich_project(p, db) for p in all_projects]
+
+
+@router.get("/my-projects", response_model=list[ProjectWithDetails])
+async def list_my_projects(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    List all projects accessible to current user.
+
+    - Admins: see all projects
+    - Regular users: see owned projects + projects shared with them
+    """
+    # Get all projects
+    result = await db.execute(
+        select(Project).order_by(Project.updated_at.desc())
+    )
+    all_projects = result.scalars().all()
+
+    accessible_projects = []
+    for project in all_projects:
+        has_access, access_type = await _check_project_access(project, current_user, db)
+        if has_access:
+            enriched = await _enrich_project_with_bundles(project, db)
+            enriched.access_type = access_type
+            accessible_projects.append(enriched)
+
+    return accessible_projects
 
 
 @router.post("", response_model=ProjectOut, status_code=201)
